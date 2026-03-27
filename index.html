@@ -2,97 +2,140 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Mắt Xích Studio - Full Power</title>
+    <title>Mắt Xích Studio Pro - Redesign</title>
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <style>
-        :root { --primary: #3b82f6; --bg: #0f172a; --panel: #1e293b; --accent: #f59e0b; --success: #10b981; }
-        body { display: flex; flex-direction: column; align-items: center; height: 100vh; margin: 0; background: var(--bg); color: white; font-family: sans-serif; overflow: hidden; }
-
-        /* THANH CÔNG CỤ */
-        .toolbar {
-            width: 98%; max-width: 1300px; background: var(--panel); margin-top: 5px; padding: 12px; 
-            border-radius: 10px; display: grid; grid-template-columns: 1fr 1fr 1.5fr 0.8fr; gap: 15px; border: 1px solid #334155;
+        :root { 
+            --bg: #09090b; --panel: #18181b; --border: #27272a;
+            --text: #fafafa; --text-dim: #a1a1aa;
+            --accent: #3b82f6; --danger: #ef4444; --success: #22c55e; --warning: #f59e0b;
         }
-        .group { display: flex; flex-direction: column; gap: 6px; border-right: 1px solid #334155; padding-right: 10px; }
-        .group:last-child { border: none; }
-        .group-title { font-size: 10px; color: #94a3b8; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; }
+        
+        body { 
+            display: flex; flex-direction: column; height: 100vh; margin: 0; 
+            background: var(--bg); color: var(--text); font-family: 'Inter', system-ui, sans-serif; overflow: hidden; 
+        }
 
-        /* KHU VỰC DÁN ẢNH */
-        .paste-zone { width: 100%; height: 60px; background: #000; border: 2px dashed #475569; border-radius: 6px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-        canvas { max-width: 100%; max-height: 100%; cursor: crosshair; }
-        .hint { position: absolute; font-size: 9px; color: #64748b; pointer-events: none; }
+        /* TOOLBAR HIỆN ĐẠI */
+        .header {
+            background: var(--panel); border-bottom: 1px solid var(--border);
+            padding: 12px 20px; display: grid; grid-template-columns: 1fr 1fr 1.5fr 1fr; gap: 20px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 10;
+        }
 
-        /* HIỂN THỊ RGB */
-        .rgb-box { font-family: monospace; font-size: 11px; color: var(--success); background: #000; padding: 5px; border-radius: 4px; border: 1px solid #334155; min-width: 110px; text-align: center; }
+        .group { display: flex; flex-direction: column; gap: 8px; }
+        .group-header { 
+            font-size: 10px; font-weight: 700; color: var(--text-dim); 
+            text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px;
+            display: flex; align-items: center; gap: 5px;
+        }
+        .group-header::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 
-        /* NÚT BẤM & HOVER */
-        button { padding: 8px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; font-size: 11px; transition: 0.2s; color: white; }
-        button:hover { filter: brightness(1.3); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .controls-row { display: flex; gap: 8px; align-items: center; }
+
+        /* INPUTS & BUTTONS */
+        input[type="number"] {
+            background: var(--bg); border: 1px solid var(--border); color: white;
+            padding: 6px; border-radius: 4px; width: 50px; font-size: 12px; outline: none;
+        }
+        input[type="range"] { flex: 1; accent-color: var(--accent); cursor: pointer; }
+        
+        button {
+            padding: 8px 12px; border-radius: 6px; font-size: 11px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s; border: 1px solid transparent;
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+            color: white;
+        }
+        button:hover { filter: brightness(1.1); transform: translateY(-1px); }
         button:active { transform: translateY(0); }
-        
-        .btn-add { background: #475569; }
-        .btn-cut { background: #ef4444; height: 100%; font-size: 13px; }
-        .btn-color { background: var(--success); flex: 1; border: 2px solid #fff; }
-        .btn-rotate { background: #334155; flex: 1; border: 1px solid #475569; }
 
-        /* KHÔNG GIAN LÀM VIỆC */
-        #workspace { width: 98%; flex: 1; background: #000; margin: 10px 0; border-radius: 12px; position: relative; border: 2px solid #334155; overflow: hidden; }
-        #targetFrame { pointer-events: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5; opacity: 0.4; }
+        .btn-blue { background: var(--accent); }
+        .btn-zinc { background: #3f3f46; border-color: #52525b; }
+        .btn-green { background: var(--success); }
+        .btn-orange { background: var(--warning); color: #000; }
+        .btn-red { background: var(--danger); }
+
+        /* STUDIO MÀU */
+        .color-studio { display: flex; gap: 10px; background: var(--bg); padding: 8px; border-radius: 8px; border: 1px solid var(--border); }
+        .paste-box { 
+            width: 80px; height: 50px; border: 2px dashed #3f3f46; border-radius: 4px;
+            display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden;
+        }
+        .paste-box canvas { width: 100%; height: 100%; object-fit: cover; }
+        .paste-box span { position: absolute; font-size: 8px; color: #52525b; pointer-events: none; text-align: center; }
+
+        /* WORKSPACE TRÀN VIỀN */
+        #workspace { flex: 1; position: relative; overflow: hidden; cursor: crosshair; }
+        #mainSvg { width: 100%; height: 100%; }
         
-        /* TRẠNG THÁI CHỌN */
-        .selected { stroke-width: 18px !important; filter: drop-shadow(0 0 12px #fff) !important; stroke: #ffffff !important; transition: stroke-width 0.1s; }
-        
-        #toast { position: fixed; bottom: 25px; background: var(--success); color: white; padding: 10px 25px; border-radius: 30px; display: none; z-index: 1000; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+        #targetFrame { pointer-events: none; stroke: var(--warning); stroke-width: 2; stroke-dasharray: 4 4; opacity: 0.5; }
+        .selected { stroke-width: 20px !important; filter: drop-shadow(0 0 8px rgba(255,255,255,0.8)) !important; stroke: #fff !important; }
+
+        #toast { 
+            position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+            background: var(--accent); color: white; padding: 10px 24px; 
+            border-radius: 99px; font-size: 13px; font-weight: 500; display: none; z-index: 100;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
     </style>
 </head>
 <body>
 
     <div id="toast">Thông báo</div>
 
-    <div class="toolbar">
+    <div class="header">
         <div class="group">
-            <div class="group-title">1. Tạo Vòng Tròn</div>
-            <button class="btn-add" onclick="addNewCircle()">+ TẠO VÒNG PHÁC THẢO</button>
-            <div style="display:flex; gap:5px">
+            <div class="group-header">1. Khởi tạo</div>
+            <button class="btn-zinc" onclick="addNewCircle()">+ TẠO VÒNG TRÒN</button>
+            <div class="controls-row">
+                <span style="font-size:10px; color:var(--text-dim)">Size:</span>
                 <input type="number" id="gSize" value="80" onchange="updateAll()">
+                <span style="font-size:10px; color:var(--text-dim)">Dày:</span>
                 <input type="number" id="gStroke" value="15" onchange="updateAll()">
             </div>
         </div>
 
         <div class="group">
-            <div class="group-title">2. Chỉnh Khuôn Cắt</div>
-            <div style="display:flex; flex-direction:column; gap:2px">
-                <label style="font-size:9px">Vị trí:</label>
-                <input type="range" id="cStart" min="0" max="360" value="0" oninput="drawTarget()">
-                <label style="font-size:9px">Độ dài:</label>
-                <input type="range" id="cLen" min="10" max="350" value="90" oninput="drawTarget()">
+            <div class="group-header">2. Khuôn cắt</div>
+            <div class="group" style="gap:2px">
+                <div class="controls-row"><label style="font-size:10px">Vị trí:</label><input type="range" id="cStart" min="0" max="360" value="0" oninput="drawTarget()"></div>
+                <div class="controls-row"><label style="font-size:10px">Độ dài:</label><input type="range" id="cLen" min="10" max="350" value="90" oninput="drawTarget()"></div>
+            </div>
+            <button class="btn-red" onclick="tryCut()">KÍCH HOẠT CẮT</button>
+        </div>
+
+        <div class="group">
+            <div class="group-header">3. Màu sắc & Biến đổi</div>
+            <div class="color-studio">
+                <div class="paste-box">
+                    <canvas id="cvLab"></canvas>
+                    <span id="hintTxt">Dán ảnh<br>(Ctrl+V)</span>
+                </div>
+                <div style="flex:1; display:flex; flex-direction:column; justify-content: space-between;">
+                    <div id="rgbVal" style="font-size:10px; font-family:monospace; color:var(--success)">RGB(---)</div>
+                    <div class="controls-row">
+                        <input type="color" id="pColor" value="#3b82f6" style="width:24px; height:24px; border:none; background:none;">
+                        <button class="btn-green" style="flex:1; padding:4px" onclick="applyColor()">TÔ MÀU</button>
+                    </div>
+                </div>
+            </div>
+            <div class="controls-row">
+                <button class="btn-zinc" style="flex:1" onclick="rotatePiece(-15)">↺</button>
+                <button class="btn-zinc" style="flex:1" onclick="rotatePiece(15)">↻</button>
+                <button class="btn-zinc" style="flex:1" onclick="rotatePiece(180)">ĐẢO</button>
             </div>
         </div>
 
         <div class="group">
-            <div class="group-title">3. Studio màu & Xoay</div>
-            <div class="paste-zone">
-                <span class="hint">Click & Ctrl+V ảnh tại đây</span>
-                <canvas id="cvLab"></canvas>
-            </div>
-            <div style="display:flex; gap:5px; align-items:center">
-                <div class="rgb-box" id="rgbVal">RGB(---)</div>
-                <input type="color" id="pColor" value="#ffffff">
-                <button class="btn-rotate" onclick="rotatePiece(-15)">↺</button>
-                <button class="btn-rotate" onclick="rotatePiece(15)">↻</button>
-                <button class="btn-color" onclick="applyColor()">TÔ MÀU</button>
-            </div>
-        </div>
-
-        <div class="group">
-            <div class="group-title">4. Thực thi</div>
-            <button class="btn-cut" onclick="tryCut()">KÍCH HOẠT CẮT</button>
-            <button style="background:#7f1d1d; margin-top:3px" onclick="deleteObj()">XÓA VẬT CHỌN</button>
+            <div class="group-header">4. Nâng cao</div>
+            <button class="btn-orange" onclick="copyInside()">COPY LÒNG LỒNG</button>
+            <button class="btn-zinc" style="background:#7f1d1d; border:none" onclick="deleteObj()">XÓA VẬT CHỌN</button>
+            <p style="font-size:8px; color:var(--text-dim); margin:0; text-align:center">Bấm vào khoảng trống để bỏ chọn</p>
         </div>
     </div>
 
     <div id="workspace" onclick="deselect(event)">
-        <svg id="mainSvg" width="100%" height="100%">
+        <svg id="mainSvg">
             <g id="baseLayer"></g>
             <path id="targetFrame" fill="none" />
             <g id="piecesLayer"></g>
@@ -101,17 +144,30 @@
 
     <script>
         let selectedObj = null;
+        const svg = document.getElementById('mainSvg');
+        
+        // Cập nhật tọa độ tâm theo màn hình
         let centerX = window.innerWidth / 2;
-        let centerY = 250;
+        let centerY = (window.innerHeight - 120) / 2;
 
-        // --- 1. LẤY MÀU TỪ ẢNH ---
+        window.addEventListener('resize', () => {
+            centerX = window.innerWidth / 2;
+            centerY = (window.innerHeight - 120) / 2;
+            drawTarget();
+        });
+
+        // --- MÀU SẮC ---
         const cv = document.getElementById('cvLab');
         const ctx = cv.getContext('2d');
         window.addEventListener('paste', e => {
             const item = e.clipboardData.items[0];
             if (item && item.type.includes("image")) {
                 const img = new Image();
-                img.onload = () => { cv.width = img.width; cv.height = img.height; ctx.drawImage(img, 0, 0); document.querySelector('.hint').style.display='none'; };
+                img.onload = () => { 
+                    cv.width = img.width; cv.height = img.height; 
+                    ctx.drawImage(img, 0, 0); 
+                    document.getElementById('hintTxt').style.display='none'; 
+                };
                 img.src = URL.createObjectURL(item.getAsFile());
             }
         });
@@ -125,13 +181,18 @@
             document.getElementById('pColor').value = hex;
         });
 
-        // --- 2. XOAY VẬT THỂ (MANG TRỞ LẠI) ---
-        function rotatePiece(deg) {
-            if(!selectedObj) { showToast("Hãy chọn 1 vật để xoay!"); return; }
-            let currentRot = parseFloat(selectedObj.getAttribute('data-rot')) || 0;
-            currentRot += deg;
-            selectedObj.setAttribute('data-rot', currentRot);
-            updateTransform(selectedObj);
+        // --- HÀM HỖ TRỢ ---
+        function select(el) {
+            if(selectedObj) selectedObj.classList.remove('selected');
+            selectedObj = el;
+            el.classList.add('selected');
+            el.parentNode.appendChild(el); 
+        }
+
+        function deselect(e) {
+            if(e.target.id === "workspace" || e.target.id === "mainSvg") {
+                if(selectedObj) { selectedObj.classList.remove('selected'); selectedObj = null; }
+            }
         }
 
         function updateTransform(el) {
@@ -141,54 +202,61 @@
             el.style.transform = `translate(${x}px, ${y}px) rotate(${r}deg)`;
         }
 
-        // --- 3. QUẢN LÝ VẬT THỂ ---
-        function select(el) {
-            if(selectedObj) selectedObj.classList.remove('selected');
-            selectedObj = el;
-            el.classList.add('selected');
-            el.parentNode.appendChild(el); 
-            document.getElementById('pColor').value = el.getAttribute('stroke');
+        function rotatePiece(deg) {
+            if(!selectedObj) return;
+            let currentRot = parseFloat(selectedObj.getAttribute('data-rot')) || 0;
+            currentRot += deg;
+            selectedObj.setAttribute('data-rot', currentRot);
+            updateTransform(selectedObj);
         }
 
-        function deselect(e) {
-            // Nếu click vào vùng trống (Workspace hoặc SVG)
-            if(e.target.id === "workspace" || e.target.tagName === "svg") {
-                if(selectedObj) {
-                    selectedObj.classList.remove('selected');
-                    selectedObj = null;
-                    showToast("Đã bỏ chọn");
+        // --- DI CHUYỂN OFFSET ---
+        function bindDrag(el) {
+            interact(el).draggable({
+                listeners: {
+                    start(event) {
+                        const t = event.target;
+                        const mx = event.clientX, my = event.clientY;
+                        const cx = parseFloat(t.getAttribute('data-x')) || 0;
+                        const cy = parseFloat(t.getAttribute('data-y')) || 0;
+                        t.setAttribute('data-offset-x', mx - cx);
+                        t.setAttribute('data-offset-y', my - cy);
+                    },
+                    move(event) {
+                        const t = event.target;
+                        const ox = parseFloat(t.getAttribute('data-offset-x')) || 0;
+                        const oy = parseFloat(t.getAttribute('data-offset-y')) || 0;
+                        t.setAttribute('data-x', event.clientX - ox);
+                        t.setAttribute('data-y', event.clientY - oy);
+                        updateTransform(t);
+                    }
                 }
-            }
+            });
         }
 
+        // --- CHỨC NĂNG CHÍNH ---
         function addNewCircle() {
             const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            c.setAttribute('class', 'draggable base-ring');
             c.setAttribute('cx', centerX); c.setAttribute('cy', centerY);
             c.setAttribute('r', document.getElementById('gSize').value);
-            c.setAttribute('stroke', '#334155'); 
+            c.setAttribute('stroke', '#3f3f46'); 
             c.setAttribute('stroke-width', document.getElementById('gStroke').value);
             c.setAttribute('fill', 'none');
-            
+            c.setAttribute('class', 'draggable');
             interact(c).on('tap', (e) => { e.stopPropagation(); select(c); });
             document.getElementById('baseLayer').appendChild(c);
             bindDrag(c);
-            showToast("Đã tạo khung vòng!");
+            showToast("Đã tạo khung vòng tròn!");
         }
 
         function tryCut() {
-            const rings = document.querySelectorAll('.base-ring');
-            let found = false;
+            const rings = document.querySelectorAll('#baseLayer circle');
             rings.forEach(r => {
                 const x = parseFloat(r.getAttribute('cx')) + (parseFloat(r.getAttribute('data-x')) || 0);
                 const y = parseFloat(r.getAttribute('cy')) + (parseFloat(r.getAttribute('data-y')) || 0);
-                if (Math.abs(x - centerX) < 25 && Math.abs(y - centerY) < 25) {
-                    createPiece(r);
-                    found = true;
-                }
+                // Kiểm tra xem vòng tròn có đang nằm gần tâm khuôn cắt không
+                if (Math.abs(x - centerX) < 50 && Math.abs(y - centerY) < 50) createPiece(r);
             });
-            if(found) showToast("Đã cắt!");
-            else alert("Hãy kéo vòng tròn vào khớp khung vạch đứt!");
         }
 
         function createPiece(source) {
@@ -207,57 +275,27 @@
             interact(p).on('tap', (e) => { e.stopPropagation(); select(p); });
             document.getElementById('piecesLayer').appendChild(p);
             bindDrag(p);
+            showToast("Đã cắt khúc!");
+        }
+
+        function copyInside() {
+            if(!selectedObj || selectedObj.tagName !== 'path') { showToast("Vui lòng chọn 1 khúc cắt!"); return; }
+            const clone = selectedObj.cloneNode(true);
+            let rot = (parseFloat(selectedObj.getAttribute('data-rot')) || 0) + 180;
+            clone.setAttribute('data-rot', rot);
+            clone.classList.remove('selected');
+            interact(clone).on('tap', (e) => { e.stopPropagation(); select(clone); });
+            document.getElementById('piecesLayer').appendChild(clone);
+            bindDrag(clone);
+            updateTransform(clone);
+            select(clone);
+            showToast("Đã nhân bản & đảo góc!");
         }
 
         function applyColor() {
-            if(!selectedObj) return alert("Bấm chọn 1 cái vòng hoặc khúc cắt trước!");
+            if(!selectedObj) return;
             selectedObj.setAttribute('stroke', document.getElementById('pColor').value);
-            showToast("Đã tô màu thành công!");
         }
-
-       // --- BIND DRAG (HÀM SỬA LỖI DI CHUYỂN LỆCH) ---
-function bindDrag(el) {
-    interact(el).draggable({
-        listeners: {
-            // 1. KHI BẮT ĐẦU KÉO: TÍNH TOÁN VÀ LƯU TRỮ OFFSET
-            start(event) {
-                const target = event.target;
-                // Lấy vị trí click chuột thực tế (client coordinates)
-                const mouseX = event.clientX0;
-                const mouseY = event.clientY0;
-                
-                // Lấy vị trí hiện tại của vật thể (cx, cy đối với vòng tròn)
-                // Hoặc x, y đối với path, nhưng ở đây ta dùng data-x, data-y
-                const currentX = parseFloat(target.getAttribute('data-x')) || 0;
-                const currentY = parseFloat(target.getAttribute('data-y')) || 0;
-
-                // Tính toán khoảng cách (offset)
-                // Chú ý: Đây là offset tương đối vì data-x/y là độ dời
-                target.setAttribute('data-offset-x', mouseX - currentX);
-                target.setAttribute('data-offset-y', mouseY - currentY);
-            },
-            
-            // 2. KHI ĐANG DI CHUYỂN: SỬ DỤNG OFFSET ĐỂ CẬP NHẬT VỊ TRÍ
-            move(event) {
-                const target = event.target;
-                // Lấy offset đã lưu
-                const offsetX = parseFloat(target.getAttribute('data-offset-x')) || 0;
-                const offsetY = parseFloat(target.getAttribute('data-offset-y')) || 0;
-                
-                // Vị trí mới = Vị trí chuột hiện tại - Offset
-                // event.clientX/Y là vị trí chuột hiện tại
-                const newX = event.clientX - offsetX;
-                const newY = event.clientY - offsetY;
-
-                target.setAttribute('data-x', newX);
-                target.setAttribute('data-y', newY);
-                updateTransform(target);
-            }
-        }
-    });
-}
-
-
 
         function drawTarget() {
             const r = document.getElementById('gSize').value, s = document.getElementById('cStart').value, l = document.getElementById('cLen').value;
@@ -266,7 +304,7 @@ function bindDrag(el) {
             document.getElementById('targetFrame').setAttribute('d', `M ${x1} ${y1} A ${r} ${r} 0 ${l > 180 ? 1 : 0} 1 ${x2} ${y2}`);
         }
 
-        function deleteObj() { if(selectedObj) { selectedObj.remove(); selectedObj = null; showToast("Đã xóa!"); } }
+        function deleteObj() { if(selectedObj) { selectedObj.remove(); selectedObj = null; showToast("Đã xóa"); } }
         function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(()=>t.style.display='none', 2000); }
         function updateAll() { drawTarget(); }
         drawTarget();
