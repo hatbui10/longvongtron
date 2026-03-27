@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Mắt Xích Studio - Full Power</title>
+    <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <style>
+        :root { --primary: #3b82f6; --bg: #0f172a; --panel: #1e293b; --accent: #f59e0b; --success: #10b981; }
+        body { display: flex; flex-direction: column; align-items: center; height: 100vh; margin: 0; background: var(--bg); color: white; font-family: sans-serif; overflow: hidden; }
+
+        /* THANH CÔNG CỤ */
+        .toolbar {
+            width: 98%; max-width: 1300px; background: var(--panel); margin-top: 5px; padding: 12px; 
+            border-radius: 10px; display: grid; grid-template-columns: 1fr 1fr 1.5fr 0.8fr; gap: 15px; border: 1px solid #334155;
+        }
+        .group { display: flex; flex-direction: column; gap: 6px; border-right: 1px solid #334155; padding-right: 10px; }
+        .group:last-child { border: none; }
+        .group-title { font-size: 10px; color: #94a3b8; font-weight: bold; text-transform: uppercase; margin-bottom: 2px; }
+
+        /* KHU VỰC DÁN ẢNH */
+        .paste-zone { width: 100%; height: 60px; background: #000; border: 2px dashed #475569; border-radius: 6px; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        canvas { max-width: 100%; max-height: 100%; cursor: crosshair; }
+        .hint { position: absolute; font-size: 9px; color: #64748b; pointer-events: none; }
+
+        /* HIỂN THỊ RGB */
+        .rgb-box { font-family: monospace; font-size: 11px; color: var(--success); background: #000; padding: 5px; border-radius: 4px; border: 1px solid #334155; min-width: 110px; text-align: center; }
+
+        /* NÚT BẤM & HOVER */
+        button { padding: 8px; cursor: pointer; border: none; border-radius: 4px; font-weight: bold; font-size: 11px; transition: 0.2s; color: white; }
+        button:hover { filter: brightness(1.3); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        button:active { transform: translateY(0); }
+        
+        .btn-add { background: #475569; }
+        .btn-cut { background: #ef4444; height: 100%; font-size: 13px; }
+        .btn-color { background: var(--success); flex: 1; border: 2px solid #fff; }
+        .btn-rotate { background: #334155; flex: 1; border: 1px solid #475569; }
+
+        /* KHÔNG GIAN LÀM VIỆC */
+        #workspace { width: 98%; flex: 1; background: #000; margin: 10px 0; border-radius: 12px; position: relative; border: 2px solid #334155; overflow: hidden; }
+        #targetFrame { pointer-events: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5; opacity: 0.4; }
+        
+        /* TRẠNG THÁI CHỌN */
+        .selected { stroke-width: 18px !important; filter: drop-shadow(0 0 12px #fff) !important; stroke: #ffffff !important; transition: stroke-width 0.1s; }
+        
+        #toast { position: fixed; bottom: 25px; background: var(--success); color: white; padding: 10px 25px; border-radius: 30px; display: none; z-index: 1000; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.4); }
+    </style>
+</head>
+<body>
+
+    <div id="toast">Thông báo</div>
+
+    <div class="toolbar">
+        <div class="group">
+            <div class="group-title">1. Tạo Vòng Tròn</div>
+            <button class="btn-add" onclick="addNewCircle()">+ TẠO VÒNG PHÁC THẢO</button>
+            <div style="display:flex; gap:5px">
+                <input type="number" id="gSize" value="80" onchange="updateAll()">
+                <input type="number" id="gStroke" value="15" onchange="updateAll()">
+            </div>
+        </div>
+
+        <div class="group">
+            <div class="group-title">2. Chỉnh Khuôn Cắt</div>
+            <div style="display:flex; flex-direction:column; gap:2px">
+                <label style="font-size:9px">Vị trí:</label>
+                <input type="range" id="cStart" min="0" max="360" value="0" oninput="drawTarget()">
+                <label style="font-size:9px">Độ dài:</label>
+                <input type="range" id="cLen" min="10" max="350" value="90" oninput="drawTarget()">
+            </div>
+        </div>
+
+        <div class="group">
+            <div class="group-title">3. Studio màu & Xoay</div>
+            <div class="paste-zone">
+                <span class="hint">Click & Ctrl+V ảnh tại đây</span>
+                <canvas id="cvLab"></canvas>
+            </div>
+            <div style="display:flex; gap:5px; align-items:center">
+                <div class="rgb-box" id="rgbVal">RGB(---)</div>
+                <input type="color" id="pColor" value="#ffffff">
+                <button class="btn-rotate" onclick="rotatePiece(-15)">↺</button>
+                <button class="btn-rotate" onclick="rotatePiece(15)">↻</button>
+                <button class="btn-color" onclick="applyColor()">TÔ MÀU</button>
+            </div>
+        </div>
+
+        <div class="group">
+            <div class="group-title">4. Thực thi</div>
+            <button class="btn-cut" onclick="tryCut()">KÍCH HOẠT CẮT</button>
+            <button style="background:#7f1d1d; margin-top:3px" onclick="deleteObj()">XÓA VẬT CHỌN</button>
+        </div>
+    </div>
+
+    <div id="workspace" onclick="deselect(event)">
+        <svg id="mainSvg" width="100%" height="100%">
+            <g id="baseLayer"></g>
+            <path id="targetFrame" fill="none" />
+            <g id="piecesLayer"></g>
+        </svg>
+    </div>
+
+    <script>
+        let selectedObj = null;
+        let centerX = window.innerWidth / 2;
+        let centerY = 250;
+
+        // --- 1. LẤY MÀU TỪ ẢNH ---
+        const cv = document.getElementById('cvLab');
+        const ctx = cv.getContext('2d');
+        window.addEventListener('paste', e => {
+            const item = e.clipboardData.items[0];
+            if (item && item.type.includes("image")) {
+                const img = new Image();
+                img.onload = () => { cv.width = img.width; cv.height = img.height; ctx.drawImage(img, 0, 0); document.querySelector('.hint').style.display='none'; };
+                img.src = URL.createObjectURL(item.getAsFile());
+            }
+        });
+        cv.addEventListener('mousemove', e => {
+            const r = cv.getBoundingClientRect();
+            const x = (e.clientX - r.left) * (cv.width / r.width);
+            const y = (e.clientY - r.top) * (cv.height / r.height);
+            const p = ctx.getImageData(x, y, 1, 1).data;
+            const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1);
+            document.getElementById('rgbVal').innerText = `RGB(${p[0]},${p[1]},${p[2]})`;
+            document.getElementById('pColor').value = hex;
+        });
+
+        // --- 2. XOAY VẬT THỂ (MANG TRỞ LẠI) ---
+        function rotatePiece(deg) {
+            if(!selectedObj) { showToast("Hãy chọn 1 vật để xoay!"); return; }
+            let currentRot = parseFloat(selectedObj.getAttribute('data-rot')) || 0;
+            currentRot += deg;
+            selectedObj.setAttribute('data-rot', currentRot);
+            updateTransform(selectedObj);
+        }
+
+        function updateTransform(el) {
+            const x = el.getAttribute('data-x') || 0;
+            const y = el.getAttribute('data-y') || 0;
+            const r = el.getAttribute('data-rot') || 0;
+            el.style.transform = `translate(${x}px, ${y}px) rotate(${r}deg)`;
+        }
+
+        // --- 3. QUẢN LÝ VẬT THỂ ---
+        function select(el) {
+            if(selectedObj) selectedObj.classList.remove('selected');
+            selectedObj = el;
+            el.classList.add('selected');
+            el.parentNode.appendChild(el); 
+            document.getElementById('pColor').value = el.getAttribute('stroke');
+        }
+
+        function deselect(e) {
+            // Nếu click vào vùng trống (Workspace hoặc SVG)
+            if(e.target.id === "workspace" || e.target.tagName === "svg") {
+                if(selectedObj) {
+                    selectedObj.classList.remove('selected');
+                    selectedObj = null;
+                    showToast("Đã bỏ chọn");
+                }
+            }
+        }
+
+        function addNewCircle() {
+            const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            c.setAttribute('class', 'draggable base-ring');
+            c.setAttribute('cx', centerX); c.setAttribute('cy', centerY);
+            c.setAttribute('r', document.getElementById('gSize').value);
+            c.setAttribute('stroke', '#334155'); 
+            c.setAttribute('stroke-width', document.getElementById('gStroke').value);
+            c.setAttribute('fill', 'none');
+            
+            interact(c).on('tap', (e) => { e.stopPropagation(); select(c); });
+            document.getElementById('baseLayer').appendChild(c);
+            bindDrag(c);
+            showToast("Đã tạo khung vòng!");
+        }
+
+        function tryCut() {
+            const rings = document.querySelectorAll('.base-ring');
+            let found = false;
+            rings.forEach(r => {
+                const x = parseFloat(r.getAttribute('cx')) + (parseFloat(r.getAttribute('data-x')) || 0);
+                const y = parseFloat(r.getAttribute('cy')) + (parseFloat(r.getAttribute('data-y')) || 0);
+                if (Math.abs(x - centerX) < 25 && Math.abs(y - centerY) < 25) {
+                    createPiece(r);
+                    found = true;
+                }
+            });
+            if(found) showToast("Đã cắt!");
+            else alert("Hãy kéo vòng tròn vào khớp khung vạch đứt!");
+        }
+
+        function createPiece(source) {
+            const s = document.getElementById('cStart').value, l = document.getElementById('cLen').value, r = source.getAttribute('r');
+            const sR = s * Math.PI / 180, eR = (parseFloat(s) + parseFloat(l)) * Math.PI / 180;
+            const x1 = centerX + r * Math.cos(sR), y1 = centerY + r * Math.sin(sR);
+            const x2 = centerX + r * Math.cos(eR), y2 = centerY + r * Math.sin(eR);
+
+            const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            p.setAttribute('d', `M ${x1} ${y1} A ${r} ${r} 0 ${l > 180 ? 1 : 0} 1 ${x2} ${y2}`);
+            p.setAttribute('stroke', source.getAttribute('stroke'));
+            p.setAttribute('stroke-width', source.getAttribute('stroke-width'));
+            p.setAttribute('fill', 'none'); p.setAttribute('stroke-linecap', 'round');
+            p.style.transformOrigin = `${centerX}px ${centerY}px`;
+
+            interact(p).on('tap', (e) => { e.stopPropagation(); select(p); });
+            document.getElementById('piecesLayer').appendChild(p);
+            bindDrag(p);
+        }
+
+        function applyColor() {
+            if(!selectedObj) return alert("Bấm chọn 1 cái vòng hoặc khúc cắt trước!");
+            selectedObj.setAttribute('stroke', document.getElementById('pColor').value);
+            showToast("Đã tô màu thành công!");
+        }
+
+       // --- BIND DRAG (HÀM SỬA LỖI DI CHUYỂN LỆCH) ---
+function bindDrag(el) {
+    interact(el).draggable({
+        listeners: {
+            // 1. KHI BẮT ĐẦU KÉO: TÍNH TOÁN VÀ LƯU TRỮ OFFSET
+            start(event) {
+                const target = event.target;
+                // Lấy vị trí click chuột thực tế (client coordinates)
+                const mouseX = event.clientX0;
+                const mouseY = event.clientY0;
+                
+                // Lấy vị trí hiện tại của vật thể (cx, cy đối với vòng tròn)
+                // Hoặc x, y đối với path, nhưng ở đây ta dùng data-x, data-y
+                const currentX = parseFloat(target.getAttribute('data-x')) || 0;
+                const currentY = parseFloat(target.getAttribute('data-y')) || 0;
+
+                // Tính toán khoảng cách (offset)
+                // Chú ý: Đây là offset tương đối vì data-x/y là độ dời
+                target.setAttribute('data-offset-x', mouseX - currentX);
+                target.setAttribute('data-offset-y', mouseY - currentY);
+            },
+            
+            // 2. KHI ĐANG DI CHUYỂN: SỬ DỤNG OFFSET ĐỂ CẬP NHẬT VỊ TRÍ
+            move(event) {
+                const target = event.target;
+                // Lấy offset đã lưu
+                const offsetX = parseFloat(target.getAttribute('data-offset-x')) || 0;
+                const offsetY = parseFloat(target.getAttribute('data-offset-y')) || 0;
+                
+                // Vị trí mới = Vị trí chuột hiện tại - Offset
+                // event.clientX/Y là vị trí chuột hiện tại
+                const newX = event.clientX - offsetX;
+                const newY = event.clientY - offsetY;
+
+                target.setAttribute('data-x', newX);
+                target.setAttribute('data-y', newY);
+                updateTransform(target);
+            }
+        }
+    });
+}
+
+
+
+        function drawTarget() {
+            const r = document.getElementById('gSize').value, s = document.getElementById('cStart').value, l = document.getElementById('cLen').value;
+            const sR = s * Math.PI / 180, eR = (parseFloat(s) + parseFloat(l)) * Math.PI / 180;
+            const x1 = centerX + r * Math.cos(sR), y1 = centerY + r * Math.sin(sR), x2 = centerX + r * Math.cos(eR), y2 = centerY + r * Math.sin(eR);
+            document.getElementById('targetFrame').setAttribute('d', `M ${x1} ${y1} A ${r} ${r} 0 ${l > 180 ? 1 : 0} 1 ${x2} ${y2}`);
+        }
+
+        function deleteObj() { if(selectedObj) { selectedObj.remove(); selectedObj = null; showToast("Đã xóa!"); } }
+        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(()=>t.style.display='none', 2000); }
+        function updateAll() { drawTarget(); }
+        drawTarget();
+    </script>
+</body>
+</html>
