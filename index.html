@@ -2,72 +2,56 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Mắt Xích Studio v6 - Preview Box</title>
+    <title>Mắt Xích Studio v8 - Smart Snap</title>
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <style>
         :root { 
-            --bg: #0f0f11; --panel: #1a1a1d; --border: #333;
-            --text: #eee; --accent: #007aff; --danger: #ff453a;
+            --bg: #0a0a0c; --panel: #16161a; --border: #2d2d30;
+            --text: #f0f0f0; --accent: #007aff; --danger: #ff3b30; --success: #34c759;
         }
-        body { 
-            display: flex; flex-direction: column; height: 100vh; margin: 0; 
-            background: var(--bg); color: var(--text); font-family: sans-serif; 
-        }
+        body { display: flex; flex-direction: column; height: 100vh; margin: 0; background: var(--bg); color: var(--text); font-family: sans-serif; overflow: hidden; }
 
-        /* TOOLBAR CỐ ĐỊNH PHÍA TRÊN */
         .toolbar {
-            display: grid; grid-template-columns: 180px 220px 1fr 200px; gap: 15px;
-            background: var(--panel); padding: 15px; border-bottom: 1px solid var(--border);
-            z-index: 100;
+            display: grid; grid-template-columns: 180px 220px 1fr 220px; gap: 15px;
+            background: var(--panel); padding: 12px 20px; border-bottom: 1px solid var(--border); z-index: 100;
         }
-        .group { display: flex; flex-direction: column; gap: 8px; border-right: 1px solid #333; padding-right: 10px; }
+        .group { display: flex; flex-direction: column; gap: 8px; border-right: 1px solid var(--border); padding-right: 12px; }
         .group:last-child { border: none; }
-        .group-label { font-size: 10px; font-weight: bold; color: #666; text-transform: uppercase; }
+        .group-label { font-size: 10px; font-weight: 800; color: #555; text-transform: uppercase; }
 
-        .btn { padding: 8px; border-radius: 4px; border: none; color: white; cursor: pointer; font-weight: bold; font-size: 11px; }
+        .btn { padding: 8px 10px; border-radius: 5px; border: none; color: white; cursor: pointer; font-weight: 600; font-size: 11px; transition: 0.2s; text-align: center; }
+        .btn:hover { filter: brightness(1.2); }
         .btn-blue { background: var(--accent); }
         .btn-red { background: var(--danger); }
-        .btn-gray { background: #333; }
         .btn-gold { background: #ffcc00; color: #000; }
+        .btn-gray { background: #323236; }
 
-        input[type="number"] { background: #000; border: 1px solid #444; color: white; padding: 4px; width: 45px; border-radius: 3px; }
+        input[type="number"] { background: #000; border: 1px solid #444; color: white; padding: 5px; width: 45px; border-radius: 4px; }
         input[type="range"] { flex: 1; accent-color: var(--accent); }
 
-        /* STUDIO MÀU */
-        .color-studio { display: flex; gap: 10px; background: #252529; padding: 8px; border-radius: 6px; }
-        .paste-zone { 
-            width: 100px; height: 60px; border: 1px dashed #555; border-radius: 4px; 
-            position: relative; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center;
-        }
+        .color-studio { display: flex; gap: 10px; background: #202024; padding: 10px; border-radius: 8px; border: 1px solid #333; }
+        .paste-zone { width: 100px; height: 60px; border: 1px dashed #444; border-radius: 4px; position: relative; overflow: hidden; background: #000; display: flex; align-items: center; justify-content: center; }
         #cvLab { cursor: crosshair; max-width: 100%; max-height: 100%; }
-        .rgb-display { font-family: monospace; font-size: 14px; color: #34c759; font-weight: bold; margin-bottom: 4px; }
-        #colorHistory { display: flex; gap: 3px; margin-top: 5px; flex-wrap: wrap; }
-        .swatch { width: 18px; height: 18px; border-radius: 3px; cursor: pointer; border: 1px solid #000; }
+        .rgb-display { font-family: monospace; font-size: 14px; color: var(--success); font-weight: bold; }
+        #colorHistory { display: flex; gap: 4px; margin-top: 6px; flex-wrap: wrap; }
+        .swatch { width: 20px; height: 20px; border-radius: 4px; cursor: pointer; border: 1px solid #000; }
 
-        /* KHUNG PREVIEW RIÊNG BIỆT */
-        .preview-container {
-            flex: 1; padding: 20px; display: flex; justify-content: center; align-items: center;
-            background: var(--bg);
-        }
-        #workspace { 
-            width: 95%; height: 95%; background: #000; border: 2px solid #222; 
-            border-radius: 12px; position: relative; overflow: hidden;
-            box-shadow: 0 0 40px rgba(0,0,0,0.5);
-        }
+        .preview-container { flex: 1; padding: 20px; display: flex; justify-content: center; align-items: center; background: #050505; }
+        #workspace { width: 100%; height: 100%; background: #000; border: 1px solid #222; border-radius: 15px; position: relative; overflow: hidden; }
         #mainSvg { width: 100%; height: 100%; }
-        #targetFrame { pointer-events: none; stroke: #ffcc00; stroke-width: 2; stroke-dasharray: 5; opacity: 0.4; }
-        .selected { stroke-width: 22px !important; stroke: #fff !important; filter: drop-shadow(0 0 10px #fff); }
+        #targetFrame { pointer-events: none; stroke: #ffcc00; stroke-width: 1.5; stroke-dasharray: 6; opacity: 0.3; }
+        .selected { stroke-width: 20px !important; stroke: #fff !important; filter: drop-shadow(0 0 12px #fff); }
     </style>
 </head>
 <body>
 
 <div class="toolbar">
     <div class="group">
-        <div class="group-label">1. Hình Dạng</div>
-        <button class="btn btn-blue" onclick="addNewCircle()">+ TẠO VÒNG MỚI</button>
+        <div class="group-label">1. Vật Thể Gốc</div>
+        <button class="btn btn-blue" onclick="addNewCircle()">+ TẠO VÒNG TRÒN</button>
         <div style="display:flex; gap:5px">
-            <input type="number" id="gSize" value="80" onchange="drawTarget()" title="Bán kính">
-            <input type="number" id="gStroke" value="15" onchange="drawTarget()" title="Độ dày">
+            <input type="number" id="gSize" value="80" onchange="drawTarget()">
+            <input type="number" id="gStroke" value="15" onchange="drawTarget()">
         </div>
     </div>
 
@@ -75,31 +59,25 @@
         <div class="group-label">2. Khuôn Cắt</div>
         <input type="range" id="cStart" min="0" max="360" value="0" oninput="drawTarget()">
         <input type="range" id="cLen" min="10" max="350" value="90" oninput="drawTarget()">
-        <button class="btn btn-red" onclick="tryCut()">CẮT KHÚC</button>
+        <button class="btn btn-red" onclick="tryCut()">CẮT KHÚC MỚI</button>
     </div>
 
     <div class="group">
         <div class="group-label">3. Studio Màu (Ctrl+V)</div>
         <div class="color-studio">
-            <div class="paste-zone">
-                <canvas id="cvLab"></canvas>
-                <span id="hint" style="font-size: 8px; color: #444; position: absolute;">ẢNH DÁN</span>
-            </div>
+            <div class="paste-zone"><canvas id="cvLab"></canvas><span id="hint" style="font-size:8px;color:#555;position:absolute">DÁN ẢNH</span></div>
             <div style="flex:1">
                 <div class="rgb-display" id="rgbVal">RGB(---)</div>
-                <div style="display:flex; gap:5px">
-                    <input type="color" id="pColor" value="#007aff">
-                    <button class="btn btn-blue" onclick="applyColor()" style="padding: 2px 8px;">TÔ</button>
-                </div>
+                <div style="display:flex; gap:5px"><input type="color" id="pColor" value="#007aff"><button class="btn btn-blue" onclick="applyColor()" style="flex:1;padding:2px">TÔ</button></div>
                 <div id="colorHistory"></div>
             </div>
         </div>
     </div>
 
     <div class="group">
-        <div class="group-label">4. Chỉnh Sửa</div>
-        <button class="btn btn-gold" onclick="copyInside()">COPY ĐẢO 180°</button>
-        <div style="display:flex; gap:5px">
+        <div class="group-label">4. Thông Minh</div>
+        <button class="btn btn-gold" onclick="smartSnap()">📍 VỀ VÒNG TRÒN GỐC</button>
+        <div style="display:flex; gap:5px; margin-top:5px">
             <button class="btn btn-gray" style="flex:1" onclick="rotatePiece(-15)">↺</button>
             <button class="btn btn-gray" style="flex:1" onclick="rotatePiece(15)">↻</button>
             <button class="btn btn-red" onclick="deleteObj()">XÓA</button>
@@ -122,75 +100,44 @@
     let history = [];
     const cv = document.getElementById('cvLab');
     const ctx = cv.getContext('2d', { willReadFrequently: true });
-    
-    // Tự động tính tâm theo Khung Preview
     let centerX, centerY;
+
     function updateCenter() {
         const rect = document.getElementById('workspace').getBoundingClientRect();
-        centerX = rect.width / 2;
-        centerY = rect.height / 2;
+        centerX = rect.width / 2; centerY = rect.height / 2;
     }
 
-    // --- CƠ CHẾ AUTO RGB KHI DÁN ---
-    window.addEventListener('paste', e => {
-        const item = e.clipboardData.items[0];
-        if (item && item.type.includes("image")) {
-            const img = new Image();
-            img.onload = () => {
-                cv.width = img.width; cv.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                document.getElementById('hint').style.display = 'none';
-                autoPickColor(cv.width/2, cv.height/2); // Lấy màu tâm ảnh ngay
-            };
-            img.src = URL.createObjectURL(item.getAsFile());
-        }
-    });
+    // --- SMART SNAP LOGIC ---
+    function smartSnap() {
+        if(!selectedObj || selectedObj.tagName !== 'path') return;
+        
+        // Lấy ID của vòng tròn cha đã sinh ra nó
+        const parentId = selectedObj.getAttribute('data-parent-id');
+        const parentCircle = document.getElementById(parentId);
 
-    function autoPickColor(x, y) {
-        if (cv.width === 0) return;
-        const p = ctx.getImageData(x, y, 1, 1).data;
-        const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1);
-        document.getElementById('rgbVal').innerText = `RGB(${p[0]},${p[1]},${p[2]})`;
-        document.getElementById('pColor').value = hex;
-        if (selectedObj) { selectedObj.setAttribute('stroke', hex); addHistory(hex); }
-    }
-
-    cv.addEventListener('mousedown', (e) => {
-        const r = cv.getBoundingClientRect();
-        autoPickColor((e.clientX-r.left)*(cv.width/r.width), (e.clientY-r.top)*(cv.height/r.height));
-    });
-
-    // --- HÀM HỆ THỐNG ---
-    function addHistory(hex) {
-        if(!history.includes(hex)) {
-            history.unshift(hex); if(history.length > 14) history.pop();
-            const box = document.getElementById('colorHistory'); box.innerHTML = '';
-            history.forEach(c => {
-                const d = document.createElement('div'); d.className = 'swatch'; d.style.backgroundColor = c;
-                d.onclick = () => { document.getElementById('pColor').value = c; if(selectedObj) selectedObj.setAttribute('stroke', c); };
-                box.appendChild(d);
-            });
+        if(parentCircle) {
+            // Lấy vị trí hiện tại của vòng tròn cha
+            const px = parseFloat(parentCircle.getAttribute('data-x')) || 0;
+            const py = parseFloat(parentCircle.getAttribute('data-y')) || 0;
+            
+            // Ép khúc cắt bay về đúng tọa độ đó
+            selectedObj.setAttribute('data-x', px);
+            selectedObj.setAttribute('data-y', py);
+            selectedObj.setAttribute('data-rot', 0);
+            selectedObj.style.transform = `translate(${px}px, ${py}px) rotate(0deg)`;
         }
     }
 
-    function addNewCircle() {
-        updateCenter();
-        const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        c.setAttribute('cx', centerX); c.setAttribute('cy', centerY);
-        c.setAttribute('r', document.getElementById('gSize').value);
-        c.setAttribute('stroke', '#333'); c.setAttribute('stroke-width', document.getElementById('gStroke').value);
-        c.setAttribute('fill', 'none');
-        interact(c).on('tap', (e) => { e.stopPropagation(); select(c); });
-        document.getElementById('baseLayer').appendChild(c);
-        bindDrag(c);
-    }
-
+    // --- CƠ CHẾ CẮT VÀ GÁN ID CHA ---
     function tryCut() {
         const rings = document.querySelectorAll('#baseLayer circle');
         rings.forEach(r => {
-            const x = parseFloat(r.getAttribute('cx')) + (parseFloat(r.getAttribute('data-x')) || 0);
-            const y = parseFloat(r.getAttribute('cy')) + (parseFloat(r.getAttribute('data-y')) || 0);
-            if (Math.abs(x - centerX) < 60 && Math.abs(y - centerY) < 60) createPiece(r);
+            const rx = parseFloat(r.getAttribute('cx')) + (parseFloat(r.getAttribute('data-x')) || 0);
+            const ry = parseFloat(r.getAttribute('cy')) + (parseFloat(r.getAttribute('data-y')) || 0);
+            // Nếu vòng tròn đang nằm trong vùng khuôn cắt (giữa màn hình)
+            if (Math.abs(rx - centerX) < 60 && Math.abs(ry - centerY) < 60) {
+                createPiece(r);
+            }
         });
     }
 
@@ -198,14 +145,41 @@
         const s = document.getElementById('cStart').value, l = document.getElementById('cLen').value, r = src.getAttribute('r');
         const sR = s * Math.PI / 180, eR = (parseFloat(s) + parseFloat(l)) * Math.PI / 180;
         const x1 = centerX + r * Math.cos(sR), y1 = centerY + r * Math.sin(sR), x2 = centerX + r * Math.cos(eR), y2 = centerY + r * Math.sin(eR);
+        
         const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
         p.setAttribute('d', `M ${x1} ${y1} A ${r} ${r} 0 ${l > 180 ? 1 : 0} 1 ${x2} ${y2}`);
-        p.setAttribute('stroke', src.getAttribute('stroke')); p.setAttribute('stroke-width', src.getAttribute('stroke-width'));
+        p.setAttribute('stroke', src.getAttribute('stroke'));
+        p.setAttribute('stroke-width', src.getAttribute('stroke-width'));
         p.setAttribute('fill', 'none'); p.setAttribute('stroke-linecap', 'round');
+        
+        // Gán "ADN" của vòng tròn cha
+        if(!src.id) src.id = "circle_" + Date.now();
+        p.setAttribute('data-parent-id', src.id);
+        
+        // Đặt vị trí ban đầu khớp với vòng tròn cha
+        const px = src.getAttribute('data-x') || 0;
+        const py = src.getAttribute('data-y') || 0;
+        p.setAttribute('data-x', px); p.setAttribute('data-y', py);
+        p.style.transform = `translate(${px}px, ${py}px)`;
         p.style.transformOrigin = `${centerX}px ${centerY}px`;
+
         interact(p).on('tap', (e) => { e.stopPropagation(); select(p); });
         document.getElementById('piecesLayer').appendChild(p);
         bindDrag(p);
+    }
+
+    // --- CÁC HÀM CÒN LẠI ---
+    function addNewCircle() {
+        updateCenter();
+        const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+        c.id = "circle_" + Date.now();
+        c.setAttribute('cx', centerX); c.setAttribute('cy', centerY);
+        c.setAttribute('r', document.getElementById('gSize').value);
+        c.setAttribute('stroke', '#333'); c.setAttribute('stroke-width', document.getElementById('gStroke').value);
+        c.setAttribute('fill', 'none');
+        interact(c).on('tap', (e) => { e.stopPropagation(); select(c); });
+        document.getElementById('baseLayer').appendChild(c);
+        bindDrag(c);
     }
 
     function bindDrag(el) {
@@ -227,28 +201,50 @@
         });
     }
 
+    window.addEventListener('paste', e => {
+        const item = e.clipboardData.items[0];
+        if (item && item.type.includes("image")) {
+            const img = new Image();
+            img.onload = () => {
+                cv.width = img.width; cv.height = img.height;
+                ctx.drawImage(img, 0, 0);
+                document.getElementById('hint').style.display = 'none';
+                autoPickColor(cv.width/2, cv.height/2);
+            };
+            img.src = URL.createObjectURL(item.getAsFile());
+        }
+    });
+
+    function autoPickColor(x, y) {
+        if (cv.width === 0) return;
+        const p = ctx.getImageData(x, y, 1, 1).data;
+        const hex = "#" + ((1 << 24) + (p[0] << 16) + (p[1] << 8) + p[2]).toString(16).slice(1);
+        document.getElementById('rgbVal').innerText = `RGB(${p[0]},${p[1]},${p[2]})`;
+        document.getElementById('pColor').value = hex;
+        if (selectedObj) { selectedObj.setAttribute('stroke', hex); addHistory(hex); }
+    }
+
+    function addHistory(hex) {
+        if(!history.includes(hex)) {
+            history.unshift(hex); if(history.length > 14) history.pop();
+            const box = document.getElementById('colorHistory'); box.innerHTML = '';
+            history.forEach(c => {
+                const d = document.createElement('div'); d.className = 'swatch'; d.style.backgroundColor = c;
+                d.onclick = () => { document.getElementById('pColor').value = c; if(selectedObj) selectedObj.setAttribute('stroke', c); };
+                box.appendChild(d);
+            });
+        }
+    }
+
     function select(el) { if(selectedObj) selectedObj.classList.remove('selected'); selectedObj = el; el.classList.add('selected'); el.parentNode.appendChild(el); }
     function deselect(e) { if(e.target.id === "workspace" || e.target.tagName === "svg") { if(selectedObj) selectedObj.classList.remove('selected'); selectedObj = null; } }
     function deleteObj() { if(selectedObj) { selectedObj.remove(); selectedObj = null; } }
     function applyColor() { if(selectedObj) { const c = document.getElementById('pColor').value; selectedObj.setAttribute('stroke', c); addHistory(c); } }
-    
     function rotatePiece(deg) {
         if(!selectedObj) return;
         let r = (parseFloat(selectedObj.getAttribute('data-rot')) || 0) + deg;
         selectedObj.setAttribute('data-rot', r);
         selectedObj.style.transform = `translate(${selectedObj.getAttribute('data-x') || 0}px, ${selectedObj.getAttribute('data-y') || 0}px) rotate(${r}deg)`;
-    }
-
-    function copyInside() {
-        if(!selectedObj || selectedObj.tagName !== 'path') return;
-        const clone = selectedObj.cloneNode(true);
-        let r = (parseFloat(selectedObj.getAttribute('data-rot')) || 0) + 180;
-        clone.setAttribute('data-rot', r); clone.classList.remove('selected');
-        interact(clone).on('tap', (e) => { e.stopPropagation(); select(clone); });
-        document.getElementById('piecesLayer').appendChild(clone);
-        bindDrag(clone);
-        clone.style.transform = `translate(${clone.getAttribute('data-x') || 0}px, ${clone.getAttribute('data-y') || 0}px) rotate(${r}deg)`;
-        select(clone);
     }
 
     function drawTarget() {
