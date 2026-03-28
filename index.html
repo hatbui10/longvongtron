@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Mắt Xích Studio v9.2 - Fix UI Slider</title>
+    <title>Mắt Xích Studio v11 - Ultimate Shapes</title>
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <style>
         :root { 
@@ -12,32 +12,19 @@
         body { display: flex; flex-direction: column; height: 100vh; margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
         .toolbar {
-            display: grid; grid-template-columns: 200px 220px 320px 1fr; gap: 15px;
+            display: grid; grid-template-columns: 220px 250px 320px 1fr; gap: 15px;
             background: var(--panel); padding: 12px 20px; border-bottom: 1px solid var(--border); z-index: 100;
         }
         .group { display: flex; flex-direction: column; gap: 8px; border-right: 1px solid var(--border); padding-right: 12px; }
         .group:last-child { border: none; }
         .group-label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; }
 
-        /* FIX: Dòng chứa Slider */
-        .input-row { 
-            display: flex; 
-            align-items: center; 
-            gap: 6px; 
-            font-size: 11px; 
-            color: #aaa; 
-            white-space: nowrap; /* Ngăn chữ nhảy dòng */
-        }
+        .input-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; white-space: nowrap; }
         
-        /* FIX: Giới hạn chiều rộng Slider để không bị tràn */
-        input[type="range"] { 
-            width: 80px; /* Chỉnh lại độ dài thanh trượt */
-            accent-color: var(--accent); 
-            cursor: pointer; 
-        }
-
-        input[type="number"] { background: #000; border: 1px solid #444; color: #fff; padding: 4px; width: 40px; border-radius: 4px; text-align: center; }
-        input[type="color"] { border: none; width: 28px; height: 28px; cursor: pointer; background: none; padding: 0; }
+        select, input[type="number"] { background: #000; border: 1px solid #444; color: #fff; padding: 4px; border-radius: 4px; }
+        input[type="range"] { width: 80px; accent-color: var(--accent); cursor: pointer; }
+        input[type="number"] { width: 45px; text-align: center; }
+        input[type="color"] { border: none; width: 28px; height: 28px; cursor: pointer; background: none; }
 
         .btn { padding: 6px 10px; border-radius: 4px; border: none; color: white; cursor: pointer; font-weight: 600; font-size: 11px; transition: 0.2s; }
         .btn:hover { filter: brightness(1.2); }
@@ -52,6 +39,8 @@
         
         .effect-3d { filter: url(#dynamicBevel) !important; }
         .selected { stroke: #ffffff !important; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
+        
+        #targetFrame { pointer-events: none; display: none; } /* Chỉ hiện khi có vật thể */
     </style>
 </head>
 <body>
@@ -59,7 +48,14 @@
 <div class="toolbar">
     <div class="group">
         <div class="group-label">1. Vật Thể & Nền</div>
-        <button class="btn btn-blue" onclick="addNewCircle()">+ VÒNG TRÒN</button>
+        <select id="shapeType">
+            <option value="circle">Hình Tròn / Cầu</option>
+            <option value="ellipse">Hình Elip</option>
+            <option value="rect">Hình Vuông / Hộp</option>
+            <option value="cylinder">Trụ Tròn</option>
+            <option value="cone">Hình Nón</option>
+        </select>
+        <button class="btn btn-blue" onclick="addNewShape()">+ TẠO VẬT CHỦ</button>
         <div class="input-row">
             <span>Nền:</span>
             <input type="color" id="bgPicker" value="#000000" oninput="updateBg()">
@@ -69,10 +65,14 @@
     <div class="group">
         <div class="group-label">2. Kích Thước & Khuôn</div>
         <div class="input-row">
-            <span>R:</span><input type="number" id="currSize" value="80" oninput="updateSelectedProps()">
-            <span>W:</span><input type="number" id="currStroke" value="15" oninput="updateSelectedProps()">
+            <span>W/R:</span><input type="number" id="dimW" value="100" oninput="updateSelectedProps()">
+            <span>H:</span><input type="number" id="dimH" value="100" oninput="updateSelectedProps()">
+            <span>Viền:</span><input type="number" id="currStroke" value="10" oninput="updateSelectedProps()">
         </div>
-        <input type="range" id="cLen" min="10" max="355" value="90" oninput="drawTarget()" style="width: 100%">
+        <div class="input-row">
+            <span>Cắt:</span>
+            <input type="range" id="cLen" min="10" max="355" value="90" oninput="drawTarget()" style="width: 100%">
+        </div>
         <button class="btn btn-red" onclick="tryCut()">CẮT THEO KHUÔN</button>
     </div>
 
@@ -113,7 +113,7 @@
                 </filter>
             </defs>
             <g id="baseLayer"></g>
-            <path id="targetFrame" fill="none" stroke="#ffcc00" stroke-width="2" stroke-dasharray="5,5" opacity="0.3" />
+            <path id="targetFrame" fill="none" stroke="#ffcc00" stroke-width="2" stroke-dasharray="5,5" />
             <g id="piecesLayer"></g>
         </svg>
     </div>
@@ -140,13 +140,36 @@
         document.getElementById('lightSource').setAttribute('y', Math.sin(rad) * 10000);
     }
 
-    function addNewCircle() {
-        const r = document.getElementById('currSize').value, sw = document.getElementById('currStroke').value;
-        const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-        c.setAttribute('cx', centerX); c.setAttribute('cy', centerY);
-        c.setAttribute('r', r); c.setAttribute('stroke', '#555'); c.setAttribute('stroke-width', sw); c.setAttribute('fill', 'none');
-        c.id = "circle_" + Date.now();
-        setupElement(c); document.getElementById('baseLayer').appendChild(c); select(c);
+    function addNewShape() {
+        const type = document.getElementById('shapeType').value;
+        const w = document.getElementById('dimW').value;
+        const h = document.getElementById('dimH').value;
+        const sw = document.getElementById('currStroke').value;
+        let el;
+
+        if (type === 'circle') {
+            el = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+            el.setAttribute('cx', centerX); el.setAttribute('cy', centerY); el.setAttribute('r', w);
+        } else if (type === 'ellipse') {
+            el = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
+            el.setAttribute('cx', centerX); el.setAttribute('cy', centerY); el.setAttribute('rx', w); el.setAttribute('ry', h);
+        } else if (type === 'rect' || type === 'cylinder') {
+            el = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            el.setAttribute('x', centerX - w/2); el.setAttribute('y', centerY - h/2);
+            el.setAttribute('width', w); el.setAttribute('height', h);
+            if(type === 'cylinder') el.setAttribute('rx', w/2);
+        } else if (type === 'cone') {
+            el = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            el.setAttribute('d', `M ${centerX} ${centerY - h/2} L ${centerX - w/2} ${centerY + h/2} L ${centerX + w/2} ${centerY + h/2} Z`);
+        }
+
+        el.setAttribute('stroke', '#555'); el.setAttribute('stroke-width', sw); el.setAttribute('fill', 'none');
+        el.setAttribute('data-type', type);
+        el.id = "shape_" + Date.now();
+        setupElement(el); document.getElementById('baseLayer').appendChild(el); select(el);
+        
+        document.getElementById('targetFrame').style.display = 'block';
+        drawTarget();
     }
 
     function setupElement(el) {
@@ -172,21 +195,74 @@
     function select(el) {
         if (selectedObj) selectedObj.classList.remove('selected');
         selectedObj = el; el.classList.add('selected');
-        document.getElementById('currSize').value = el.getAttribute('r') || el.getAttribute('data-r');
         document.getElementById('currStroke').value = el.getAttribute('stroke-width');
         document.getElementById('currRot').value = el.getAttribute('data-rot') || 0;
     }
 
-    function deselect(e) { if (e.target.id === "workspace" || e.target.tagName === "svg") { if (selectedObj) selectedObj.classList.remove('selected'); selectedObj = null; } }
+    function deselect(e) { 
+        if (e.target.id === "workspace" || e.target.tagName === "svg") { 
+            if (selectedObj) selectedObj.classList.remove('selected'); 
+            selectedObj = null; 
+            document.getElementById('targetFrame').style.display = 'none';
+        } 
+    }
 
     function updateSelectedProps() {
         if (!selectedObj) return;
-        const r = document.getElementById('currSize').value, sw = document.getElementById('currStroke').value, rot = document.getElementById('currRot').value;
+        const w = document.getElementById('dimW').value;
+        const h = document.getElementById('dimH').value;
+        const sw = document.getElementById('currStroke').value;
+        const rot = document.getElementById('currRot').value;
+        const type = selectedObj.getAttribute('data-type');
+
         selectedObj.setAttribute('data-rot', rot);
-        if (selectedObj.tagName === 'circle') { selectedObj.setAttribute('r', r); } 
-        else { selectedObj.setAttribute('data-r', r); redrawPath(selectedObj); }
         selectedObj.setAttribute('stroke-width', sw);
+
+        if (type === 'circle') selectedObj.setAttribute('r', w);
+        else if (type === 'ellipse') { selectedObj.setAttribute('rx', w); selectedObj.setAttribute('ry', h); }
+        else if (type === 'rect' || type === 'cylinder') {
+            selectedObj.setAttribute('width', w); selectedObj.setAttribute('height', h);
+            selectedObj.setAttribute('x', centerX - w/2); selectedObj.setAttribute('y', centerY - h/2);
+        } else if (type === 'cone') {
+            selectedObj.setAttribute('d', `M ${centerX} ${centerY - h/2} L ${centerX - w/2} ${centerY + h/2} L ${centerX + w/2} ${centerY + h/2} Z`);
+        }
+
         updateTransform(selectedObj); drawTarget();
+    }
+
+    function drawTarget() {
+        const type = document.getElementById('shapeType').value;
+        const w = parseFloat(document.getElementById('dimW').value);
+        const h = parseFloat(document.getElementById('dimH').value);
+        const lD = parseFloat(document.getElementById('cLen').value);
+        const tf = document.getElementById('targetFrame');
+
+        if (type === 'circle') {
+            const x2 = centerX + w * Math.cos(lD * Math.PI / 180), y2 = centerY + w * Math.sin(lD * Math.PI / 180);
+            tf.setAttribute('d', `M ${centerX + w} ${centerY} A ${w} ${w} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2}`);
+        } else if (type === 'rect' || type === 'cylinder') {
+            const offset = (lD / 355) * w;
+            tf.setAttribute('d', `M ${centerX - w/2} ${centerY - h/2} L ${centerX - w/2 + offset} ${centerY - h/2} L ${centerX - w/2 + offset} ${centerY + h/2} L ${centerX - w/2} ${centerY + h/2}`);
+        } else if (type === 'ellipse') {
+            const x2 = centerX + w * Math.cos(lD * Math.PI / 180), y2 = centerY + h * Math.sin(lD * Math.PI / 180);
+            tf.setAttribute('d', `M ${centerX + w} ${centerY} A ${w} ${h} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2}`);
+        } else if (type === 'cone') {
+            const ratio = lD / 355;
+            tf.setAttribute('d', `M ${centerX} ${centerY - h/2} L ${centerX - (w/2)*ratio} ${centerY - h/2 + h*ratio} L ${centerX + (w/2)*ratio} ${centerY - h/2 + h*ratio} Z`);
+        }
+    }
+
+    function tryCut() {
+        if (!selectedObj) return;
+        const sw = selectedObj.getAttribute('stroke-width');
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute('d', document.getElementById('targetFrame').getAttribute('d'));
+        p.setAttribute('stroke', '#555'); p.setAttribute('stroke-width', sw); p.setAttribute('fill', 'none');
+        p.setAttribute('data-parent-id', selectedObj.id);
+        p.setAttribute('data-x', selectedObj.getAttribute('data-x') || 0);
+        p.setAttribute('data-y', selectedObj.getAttribute('data-y') || 0);
+        p.setAttribute('data-rot', 0);
+        setupElement(p); document.getElementById('piecesLayer').appendChild(p); select(p);
     }
 
     function rotatePiece(deg) {
@@ -197,42 +273,19 @@
         updateTransform(selectedObj);
     }
 
-    function tryCut() { document.querySelectorAll('#baseLayer circle').forEach(c => createPiece(c)); }
-
-    function createPiece(src) {
-        const r = src.getAttribute('r'), sw = src.getAttribute('stroke-width'), lD = parseFloat(document.getElementById('cLen').value);
-        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        p.setAttribute('stroke', src.getAttribute('stroke')); p.setAttribute('stroke-width', sw);
-        p.setAttribute('fill', 'none'); p.setAttribute('stroke-linecap', 'round');
-        p.setAttribute('data-parent-id', src.id); p.setAttribute('data-r', r); p.setAttribute('data-start', 0); p.setAttribute('data-len', lD);
-        const x = src.getAttribute('data-x') || 0, y = src.getAttribute('data-y') || 0;
-        p.setAttribute('data-x', x); p.setAttribute('data-y', y); p.setAttribute('data-rot', 0);
-        redrawPath(p); setupElement(p); document.getElementById('piecesLayer').appendChild(p); select(p);
-    }
-
-    function redrawPath(p) {
-        const r = p.getAttribute('data-r'), lD = parseFloat(p.getAttribute('data-len'));
-        const x1 = centerX + r * 1, y1 = centerY, x2 = centerX + r * Math.cos(lD * Math.PI / 180), y2 = centerY + r * Math.sin(lD * Math.PI / 180);
-        p.setAttribute('d', `M ${x1} ${y1} A ${r} ${r} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2}`);
-    }
-
     function apply3D() { if (selectedObj) { selectedObj.setAttribute('stroke', document.getElementById('pColor').value); selectedObj.classList.add('effect-3d'); } }
     function applyFlat() { if (selectedObj) { selectedObj.setAttribute('stroke', document.getElementById('pColor').value); selectedObj.classList.remove('effect-3d'); } }
-    function deleteObj() { if(selectedObj) { selectedObj.remove(); selectedObj = null; } }
+    function deleteObj() { if(selectedObj) { selectedObj.remove(); selectedObj = null; document.getElementById('targetFrame').style.display = 'none'; } }
+    
     function smartSnap() {
         if(!selectedObj || !selectedObj.getAttribute('data-parent-id')) return;
         const parent = document.getElementById(selectedObj.getAttribute('data-parent-id'));
         if(parent) {
-            const x = parent.getAttribute('data-x') || 0, y = parent.getAttribute('data-y') || 0;
-            selectedObj.setAttribute('data-x', x); selectedObj.setAttribute('data-y', y);
+            selectedObj.setAttribute('data-x', parent.getAttribute('data-x') || 0);
+            selectedObj.setAttribute('data-y', parent.getAttribute('data-y') || 0);
             selectedObj.setAttribute('data-rot', 0); document.getElementById('currRot').value = 0;
             updateTransform(selectedObj);
         }
-    }
-    function drawTarget() {
-        const r = document.getElementById('currSize').value, lD = parseFloat(document.getElementById('cLen').value);
-        const x1 = centerX + r * 1, y1 = centerY, x2 = centerX + r * Math.cos(lD * Math.PI / 180), y2 = centerY + r * Math.sin(lD * Math.PI / 180);
-        document.getElementById('targetFrame').setAttribute('d', `M ${x1} ${y1} A ${r} ${r} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2}`);
     }
 </script>
 </body>
