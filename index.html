@@ -2,18 +2,19 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Mắt Xích Studio v11 - Ultimate Shapes</title>
+    <title>Mắt Xích Studio v13 - Natural Dropdown</title>
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { 
             --bg: #0a0a0c; --panel: #16161a; --border: #2d2d30;
-            --text: #f0f0f0; --accent: #007aff; --danger: #ff3b30;
+            --text: #f0f0f0; --accent: #007aff; --danger: #ff3b30; --success: #34c759;
         }
         body { display: flex; flex-direction: column; height: 100vh; margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; overflow: hidden; }
 
         .toolbar {
-            display: grid; grid-template-columns: 220px 250px 320px 1fr; gap: 15px;
-            background: var(--panel); padding: 12px 20px; border-bottom: 1px solid var(--border); z-index: 100;
+            display: grid; grid-template-columns: 240px 250px 320px 1fr; gap: 15px;
+            background: var(--panel); padding: 12px 20px; border-bottom: 1px solid var(--border); z-index: 1000;
         }
         .group { display: flex; flex-direction: column; gap: 8px; border-right: 1px solid var(--border); padding-right: 12px; }
         .group:last-child { border: none; }
@@ -21,39 +22,48 @@
 
         .input-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; white-space: nowrap; }
         
-        select, input[type="number"] { background: #000; border: 1px solid #444; color: #fff; padding: 4px; border-radius: 4px; }
+        /* FIX: Dropdown thả xuống tự nhiên */
+        select { 
+            background: #000; border: 1px solid #444; color: #fff; padding: 8px; 
+            border-radius: 4px; cursor: pointer; width: 100%; appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23777%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat; background-position: right 10px top 50%; background-size: 10px auto;
+        }
+        select option { background: #16161a; color: #fff; padding: 10px; }
+
+        input[type="number"] { background: #000; border: 1px solid #444; color: #fff; padding: 6px; border-radius: 4px; width: 45px; text-align: center; }
         input[type="range"] { width: 80px; accent-color: var(--accent); cursor: pointer; }
-        input[type="number"] { width: 45px; text-align: center; }
         input[type="color"] { border: none; width: 28px; height: 28px; cursor: pointer; background: none; }
 
         .btn { padding: 6px 10px; border-radius: 4px; border: none; color: white; cursor: pointer; font-weight: 600; font-size: 11px; transition: 0.2s; }
         .btn:hover { filter: brightness(1.2); }
         .btn-blue { background: var(--accent); }
         .btn-red { background: var(--danger); }
+        .btn-green { background: var(--success); }
         .btn-gray { background: #323236; min-width: 30px; }
         .btn-3d { background: linear-gradient(135deg, #6e8efb, #a777e3); }
 
-        .preview-container { flex: 1; padding: 20px; display: flex; background: #111; }
+        .preview-container { flex: 1; padding: 20px; display: flex; background: #111; z-index: 1; }
         #workspace { width: 100%; height: 100%; border-radius: 12px; position: relative; overflow: hidden; background: #000; }
         #mainSvg { width: 100%; height: 100%; }
         
         .effect-3d { filter: url(#dynamicBevel) !important; }
         .selected { stroke: #ffffff !important; filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); }
-        
-        #targetFrame { pointer-events: none; display: none; } /* Chỉ hiện khi có vật thể */
+        #targetFrame { pointer-events: none; display: none; } 
     </style>
 </head>
 <body>
 
 <div class="toolbar">
     <div class="group">
-        <div class="group-label">1. Vật Thể & Nền</div>
+        <div class="group-label">1. Vật Thể Chủ</div>
         <select id="shapeType">
-            <option value="circle">Hình Tròn / Cầu</option>
-            <option value="ellipse">Hình Elip</option>
-            <option value="rect">Hình Vuông / Hộp</option>
-            <option value="cylinder">Trụ Tròn</option>
-            <option value="cone">Hình Nón</option>
+            <option value="circle_ring">○ Hình Tròn (Vòng nhẫn)</option>
+            <option value="circle_solid">● Hình Cầu (Khối đặc)</option>
+            <option value="ellipse">⬭ Hình Elip</option>
+            <option value="rect">■ Hình Vuông / Hộp</option>
+            <option value="cylinder">▮ Hình Trụ Tròn</option>
+            <option value="cone">▲ Hình Nón</option>
         </select>
         <button class="btn btn-blue" onclick="addNewShape()">+ TẠO VẬT CHỦ</button>
         <div class="input-row">
@@ -67,7 +77,7 @@
         <div class="input-row">
             <span>W/R:</span><input type="number" id="dimW" value="100" oninput="updateSelectedProps()">
             <span>H:</span><input type="number" id="dimH" value="100" oninput="updateSelectedProps()">
-            <span>Viền:</span><input type="number" id="currStroke" value="10" oninput="updateSelectedProps()">
+            <span>Viền:</span><input type="number" id="currStroke" value="15" oninput="updateSelectedProps()">
         </div>
         <div class="input-row">
             <span>Cắt:</span>
@@ -77,15 +87,15 @@
     </div>
 
     <div class="group">
-        <div class="group-label">3. Xoay & Ánh Sáng 3D</div>
+        <div class="group-label">3. 3D & Xoay</div>
         <div class="input-row">
             <button class="btn btn-gray" onclick="rotatePiece(-15)">↺</button>
             <input type="number" id="currRot" value="0" oninput="updateSelectedProps()">
             <button class="btn btn-gray" onclick="rotatePiece(15)">↻</button>
-            <span style="margin-left:5px">Sáng:</span>
-            <input type="range" id="lightAngle" min="0" max="360" value="135" oninput="updateLighting()">
+            <span style="font-size:10px">Sáng:</span>
+            <input type="range" id="lightAngle" min="0" max="360" value="135" oninput="updateLighting()" style="width:50px">
         </div>
-        <div style="display:flex; gap:5px; align-items: center;">
+        <div style="display:flex; gap:5px;">
             <input type="color" id="pColor" value="#007aff">
             <button class="btn btn-3d" onclick="apply3D()" style="flex:1">TÔ 3D</button>
             <button class="btn btn-blue" onclick="applyFlat()">PHẲNG</button>
@@ -93,15 +103,18 @@
     </div>
 
     <div class="group">
-        <div class="group-label">4. Thao Tác</div>
-        <button class="btn btn-red" onclick="deleteObj()">XÓA</button>
-        <button class="btn btn-blue" style="background:#444" onclick="smartSnap()">HÚT VỀ GỐC</button>
+        <div class="group-label">4. Thao Tác & Xuất</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
+            <button class="btn btn-red" onclick="deleteObj()">XÓA</button>
+            <button class="btn btn-blue" onclick="smartSnap()">HÚT</button>
+            <button class="btn btn-green" onclick="exportImage()" style="grid-column: span 2">📸 XUẤT PNG</button>
+        </div>
     </div>
 </div>
 
 <div class="preview-container">
     <div id="workspace" onclick="deselect(event)">
-        <svg id="mainSvg">
+        <svg id="mainSvg" xmlns="http://www.w3.org/2000/svg">
             <defs>
                 <filter id="dynamicBevel" x="-50%" y="-50%" width="200%" height="200%">
                     <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
@@ -113,7 +126,7 @@
                 </filter>
             </defs>
             <g id="baseLayer"></g>
-            <path id="targetFrame" fill="none" stroke="#ffcc00" stroke-width="2" stroke-dasharray="5,5" />
+            <path id="targetFrame" fill="none" stroke="#ffcc00" stroke-width="2" stroke-dasharray="8,4" />
             <g id="piecesLayer"></g>
         </svg>
     </div>
@@ -133,13 +146,6 @@
 
     function updateBg() { document.getElementById('workspace').style.backgroundColor = document.getElementById('bgPicker').value; }
 
-    function updateLighting() {
-        const angle = document.getElementById('lightAngle').value;
-        const rad = angle * Math.PI / 180;
-        document.getElementById('lightSource').setAttribute('x', Math.cos(rad) * 10000);
-        document.getElementById('lightSource').setAttribute('y', Math.sin(rad) * 10000);
-    }
-
     function addNewShape() {
         const type = document.getElementById('shapeType').value;
         const w = document.getElementById('dimW').value;
@@ -147,27 +153,30 @@
         const sw = document.getElementById('currStroke').value;
         let el;
 
-        if (type === 'circle') {
+        if (type.startsWith('circle')) {
             el = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             el.setAttribute('cx', centerX); el.setAttribute('cy', centerY); el.setAttribute('r', w);
+            if(type === 'circle_solid') { el.setAttribute('fill', '#444'); el.setAttribute('stroke-width', 0); }
+            else { el.setAttribute('fill', 'none'); el.setAttribute('stroke', '#555'); el.setAttribute('stroke-width', sw); }
         } else if (type === 'ellipse') {
             el = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
             el.setAttribute('cx', centerX); el.setAttribute('cy', centerY); el.setAttribute('rx', w); el.setAttribute('ry', h);
+            el.setAttribute('fill', 'none'); el.setAttribute('stroke', '#555'); el.setAttribute('stroke-width', sw);
         } else if (type === 'rect' || type === 'cylinder') {
             el = document.createElementNS("http://www.w3.org/2000/svg", "rect");
             el.setAttribute('x', centerX - w/2); el.setAttribute('y', centerY - h/2);
             el.setAttribute('width', w); el.setAttribute('height', h);
+            el.setAttribute('fill', 'none'); el.setAttribute('stroke', '#555'); el.setAttribute('stroke-width', sw);
             if(type === 'cylinder') el.setAttribute('rx', w/2);
         } else if (type === 'cone') {
             el = document.createElementNS("http://www.w3.org/2000/svg", "path");
             el.setAttribute('d', `M ${centerX} ${centerY - h/2} L ${centerX - w/2} ${centerY + h/2} L ${centerX + w/2} ${centerY + h/2} Z`);
+            el.setAttribute('fill', 'none'); el.setAttribute('stroke', '#555'); el.setAttribute('stroke-width', sw);
         }
 
-        el.setAttribute('stroke', '#555'); el.setAttribute('stroke-width', sw); el.setAttribute('fill', 'none');
         el.setAttribute('data-type', type);
         el.id = "shape_" + Date.now();
         setupElement(el); document.getElementById('baseLayer').appendChild(el); select(el);
-        
         document.getElementById('targetFrame').style.display = 'block';
         drawTarget();
     }
@@ -195,8 +204,10 @@
     function select(el) {
         if (selectedObj) selectedObj.classList.remove('selected');
         selectedObj = el; el.classList.add('selected');
-        document.getElementById('currStroke').value = el.getAttribute('stroke-width');
+        document.getElementById('currStroke').value = el.getAttribute('stroke-width') || 0;
         document.getElementById('currRot').value = el.getAttribute('data-rot') || 0;
+        document.getElementById('targetFrame').style.display = 'block';
+        drawTarget();
     }
 
     function deselect(e) { 
@@ -214,11 +225,9 @@
         const sw = document.getElementById('currStroke').value;
         const rot = document.getElementById('currRot').value;
         const type = selectedObj.getAttribute('data-type');
-
         selectedObj.setAttribute('data-rot', rot);
-        selectedObj.setAttribute('stroke-width', sw);
-
-        if (type === 'circle') selectedObj.setAttribute('r', w);
+        if (type !== 'circle_solid') selectedObj.setAttribute('stroke-width', sw);
+        if (type.startsWith('circle')) selectedObj.setAttribute('r', w);
         else if (type === 'ellipse') { selectedObj.setAttribute('rx', w); selectedObj.setAttribute('ry', h); }
         else if (type === 'rect' || type === 'cylinder') {
             selectedObj.setAttribute('width', w); selectedObj.setAttribute('height', h);
@@ -226,26 +235,25 @@
         } else if (type === 'cone') {
             selectedObj.setAttribute('d', `M ${centerX} ${centerY - h/2} L ${centerX - w/2} ${centerY + h/2} L ${centerX + w/2} ${centerY + h/2} Z`);
         }
-
         updateTransform(selectedObj); drawTarget();
     }
 
     function drawTarget() {
-        const type = document.getElementById('shapeType').value;
+        const type = selectedObj ? selectedObj.getAttribute('data-type') : document.getElementById('shapeType').value;
         const w = parseFloat(document.getElementById('dimW').value);
         const h = parseFloat(document.getElementById('dimH').value);
         const lD = parseFloat(document.getElementById('cLen').value);
         const tf = document.getElementById('targetFrame');
-
-        if (type === 'circle') {
+        if (type.startsWith('circle')) {
             const x2 = centerX + w * Math.cos(lD * Math.PI / 180), y2 = centerY + w * Math.sin(lD * Math.PI / 180);
-            tf.setAttribute('d', `M ${centerX + w} ${centerY} A ${w} ${w} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2}`);
+            if (type === 'circle_solid') tf.setAttribute('d', `M ${centerX} ${centerY} L ${centerX + w} ${centerY} A ${w} ${w} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2} Z`);
+            else tf.setAttribute('d', `M ${centerX + w} ${centerY} A ${w} ${w} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2}`);
         } else if (type === 'rect' || type === 'cylinder') {
             const offset = (lD / 355) * w;
-            tf.setAttribute('d', `M ${centerX - w/2} ${centerY - h/2} L ${centerX - w/2 + offset} ${centerY - h/2} L ${centerX - w/2 + offset} ${centerY + h/2} L ${centerX - w/2} ${centerY + h/2}`);
+            tf.setAttribute('d', `M ${centerX - w/2} ${centerY - h/2} L ${centerX - w/2 + offset} ${centerY - h/2} L ${centerX - w/2 + offset} ${centerY + h/2} L ${centerX - w/2} ${centerY + h/2} Z`);
         } else if (type === 'ellipse') {
             const x2 = centerX + w * Math.cos(lD * Math.PI / 180), y2 = centerY + h * Math.sin(lD * Math.PI / 180);
-            tf.setAttribute('d', `M ${centerX + w} ${centerY} A ${w} ${h} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2}`);
+            tf.setAttribute('d', `M ${centerX} ${centerY} L ${centerX + w} ${centerY} A ${w} ${h} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2} Z`);
         } else if (type === 'cone') {
             const ratio = lD / 355;
             tf.setAttribute('d', `M ${centerX} ${centerY - h/2} L ${centerX - (w/2)*ratio} ${centerY - h/2 + h*ratio} L ${centerX + (w/2)*ratio} ${centerY - h/2 + h*ratio} Z`);
@@ -254,10 +262,11 @@
 
     function tryCut() {
         if (!selectedObj) return;
-        const sw = selectedObj.getAttribute('stroke-width');
+        const type = selectedObj.getAttribute('data-type');
         const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
         p.setAttribute('d', document.getElementById('targetFrame').getAttribute('d'));
-        p.setAttribute('stroke', '#555'); p.setAttribute('stroke-width', sw); p.setAttribute('fill', 'none');
+        if (type === 'circle_solid' || type === 'ellipse') { p.setAttribute('fill', '#444'); p.setAttribute('stroke-width', 0); }
+        else { p.setAttribute('fill', 'none'); p.setAttribute('stroke', '#555'); p.setAttribute('stroke-width', selectedObj.getAttribute('stroke-width')); }
         p.setAttribute('data-parent-id', selectedObj.id);
         p.setAttribute('data-x', selectedObj.getAttribute('data-x') || 0);
         p.setAttribute('data-y', selectedObj.getAttribute('data-y') || 0);
@@ -273,8 +282,20 @@
         updateTransform(selectedObj);
     }
 
-    function apply3D() { if (selectedObj) { selectedObj.setAttribute('stroke', document.getElementById('pColor').value); selectedObj.classList.add('effect-3d'); } }
-    function applyFlat() { if (selectedObj) { selectedObj.setAttribute('stroke', document.getElementById('pColor').value); selectedObj.classList.remove('effect-3d'); } }
+    function apply3D() { 
+        if (!selectedObj) return;
+        const color = document.getElementById('pColor').value;
+        if (selectedObj.getAttribute('fill') !== 'none') selectedObj.setAttribute('fill', color);
+        else selectedObj.setAttribute('stroke', color);
+        selectedObj.classList.add('effect-3d'); 
+    }
+    function applyFlat() { 
+        if (!selectedObj) return;
+        const color = document.getElementById('pColor').value;
+        if (selectedObj.getAttribute('fill') !== 'none') selectedObj.setAttribute('fill', color);
+        else selectedObj.setAttribute('stroke', color);
+        selectedObj.classList.remove('effect-3d'); 
+    }
     function deleteObj() { if(selectedObj) { selectedObj.remove(); selectedObj = null; document.getElementById('targetFrame').style.display = 'none'; } }
     
     function smartSnap() {
@@ -286,6 +307,25 @@
             selectedObj.setAttribute('data-rot', 0); document.getElementById('currRot').value = 0;
             updateTransform(selectedObj);
         }
+    }
+    function updateLighting() {
+        const angle = document.getElementById('lightAngle').value;
+        const rad = angle * Math.PI / 180;
+        document.getElementById('lightSource').setAttribute('x', Math.cos(rad) * 10000);
+        document.getElementById('lightSource').setAttribute('y', Math.sin(rad) * 10000);
+    }
+    function exportImage() {
+        const workspace = document.getElementById('workspace');
+        const tf = document.getElementById('targetFrame');
+        const originalDisplay = tf.style.display;
+        tf.style.display = 'none';
+        html2canvas(workspace).then(canvas => {
+            const link = document.createElement('a');
+            link.download = 'mat-xich-studio-export.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+            tf.style.display = originalDisplay;
+        });
     }
 </script>
 </body>
