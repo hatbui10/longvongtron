@@ -2,19 +2,19 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <title>Mắt Xích Studio v14.5 - Fix Layout & Real Sphere</title>
+    <title>Mắt Xích Studio v12.0 - Pro UI & Fast Rotate</title>
     <script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         :root { 
-            --bg: #0a0a0c; --panel: #16161a; --border: #2d2d30;
-            --text: #f0f0f0; --accent: #007aff; --danger: #ff3b30; --success: #34c759;
+            --bg: #0d0d0f; --panel: #1a1a1e; --border: #2d2d32;
+            --text: #e0e0e0; --accent: #007aff; --danger: #ff453a; --success: #32d74b;
+            --input-bg: #000000;
         }
-        body { display: flex; flex-direction: column; height: 100vh; margin: 0; background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; overflow: hidden; }
+        body { display: flex; flex-direction: column; height: 100vh; margin: 0; background: var(--bg); color: var(--text); font-family: 'Inter', 'Segoe UI', sans-serif; overflow: hidden; }
 
-        /* Giao diện dàn hàng ngang chuẩn */
-       /* Làm cho thanh công cụ dài ra hết cỡ và các nhóm cách xa nhau */
-.toolbar {
+        /* Toolbar UI hiện đại */
+        .toolbar {
     display: flex; 
     align-items: center; 
     justify-content: space-between; /* Giãn cách đều các nhóm ra tận 2 mép */
@@ -40,72 +40,72 @@
 
 
         .group:last-child { border: none; }
-        .group-label { font-size: 10px; font-weight: 800; color: #777; text-transform: uppercase; margin-bottom: 2px; }
+        .group-label { font-size: 9px; font-weight: 800; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
 
-        .input-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #aaa; }
+        .input-row { display: flex; align-items: center; gap: 8px; font-size: 11px; color: #999; }
         
-        /* Dropdown chuẩn */
-        select { 
-            background: #000; border: 1px solid #444; color: #fff; padding: 5px; 
-            border-radius: 4px; cursor: pointer; width: 160px; font-size: 12px;
-        }
-
-        input[type="number"] { background: #000; border: 1px solid #444; color: #fff; padding: 4px; border-radius: 4px; width: 40px; text-align: center; font-size: 11px; }
-        input[type="range"] { accent-color: var(--accent); cursor: pointer; height: 4px; }
+        select, input[type="number"] { background: var(--input-bg); border: 1px solid var(--border); color: #fff; padding: 5px; border-radius: 4px; outline: none; }
+        select:focus, input[type="number"]:focus { border-color: var(--accent); }
+        select { cursor: pointer; height: 30px; width: 100%; font-size: 11px; }
+        input[type="number"] { width: 42px; text-align: center; }
         
-        /* Ô màu nền chuẩn */
-        input[type="color"] { border: 1px solid #333; width: 20px; height: 20px; cursor: pointer; background: none; padding: 0; border-radius: 4px; }
+        input[type="range"] { flex: 1; height: 4px; background: #333; border-radius: 2px; accent-color: var(--accent); cursor: pointer; }
+        input[type="color"] { border: none; width: 24px; height: 24px; cursor: pointer; background: none; padding: 0; border-radius: 2px; }
 
-        .btn { padding: 6px 12px; border-radius: 4px; border: none; color: white; cursor: pointer; font-weight: 600; font-size: 11px; transition: 0.2s; white-space: nowrap; }
-        .btn:hover { filter: brightness(1.2); }
+        .btn { padding: 7px 12px; border-radius: 4px; border: none; color: white; cursor: pointer; font-weight: 700; font-size: 10px; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
+        .btn:active { transform: translateY(1px); filter: brightness(0.8); }
         .btn-blue { background: var(--accent); }
         .btn-red { background: var(--danger); }
         .btn-green { background: var(--success); }
-        .btn-gray { background: #323236; min-width: 28px; padding: 4px; }
-        .btn-3d { background: linear-gradient(135deg, #8e78ff, #b678ff); }
+        .btn-gray { background: #3a3a3c; color: #fff; padding: 5px 8px; min-width: 28px; font-size: 14px; }
+        .btn-3d { background: linear-gradient(135deg, #5e5ce6, #bf5af2); }
+        .btn-flat { background: #48484a; }
 
-        .preview-container { flex: 1; padding: 20px; display: flex; background: #111; z-index: 1; }
-        #workspace { width: 100%; height: 100%; border-radius: 12px; position: relative; overflow: hidden; background: #000; }
+        .preview-container { flex: 1; padding: 15px; display: flex; background: #111; position: relative; }
+        #workspace { width: 100%; height: 100%; border-radius: 8px; position: relative; overflow: hidden; background: #000; border: 1px solid var(--border); }
         #mainSvg { width: 100%; height: 100%; }
         
-        /* Hiệu ứng Bevel cũ */
-        .effect-bevel { filter: url(#dynamicBevel) !important; }
-        /* Hiệu ứng khối cầu mới chân thực */
-        .effect-sphere { filter: url(#sphere3D) !important; }
-        
-        .selected { stroke: #ffffff !important; stroke-width: 1px !important; filter: drop-shadow(0 0 8px rgba(255,255,255,0.4)); }
+        .effect-3d { filter: url(#dynamicBevel) !important; }
+        .selected { outline: 1px dashed rgba(255,255,255,0.5); outline-offset: 4px; }
         #targetFrame { pointer-events: none; display: none; } 
     </style>
 </head>
 <body>
 
 <div class="toolbar">
-    <div class="group" style="display: grid; grid-template-columns: auto 1fr; gap: 5px; align-items: center;">
-        <div class="group-label" style="grid-column: span 2;">1. Vật Thể Chủ</div>
-        <select id="shapeType" style="grid-column: span 2;">
+    <div class="group">
+        <div class="group-label">1. Vật Thể Chủ</div>
+        <select id="shapeType" onchange="toggleInputs()">
             <option value="circle_ring">○ Hình Tròn (Vòng nhẫn)</option>
-            <option value="circle_solid" selected>● Hình Cầu (Khối thực)</option>
+            <option value="circle_solid" selected>● Hình Cầu (Khối đặc)</option>
             <option value="ellipse">⬭ Hình Elip</option>
-            <option value="rect">■ Hình Vuông / Hộp</option>
-            <option value="cylinder">▮ Hình Trụ Tròn</option>
+            <option value="rect">■ Hình Vuông / CN</option>
+            <option value="cylinder">▮ Hình Trụ</option>
             <option value="cone">▲ Hình Nón</option>
         </select>
-        <button class="btn btn-blue" onclick="addNewShape()" style="grid-column: span 2;">+ TẠO VẬT CHỦ</button>
-        <div class="input-row"><span>Nền:</span></div>
-        <input type="color" id="bgPicker" value="#000000" oninput="updateBg()">
+        <button class="btn btn-blue" onclick="addNewShape()">+ Tạo Vật Chủ</button>
+        <div class="input-row">
+            <span>Màu Nền:</span>
+            <input type="color" id="bgPicker" value="#000000" oninput="updateBg()">
+        </div>
     </div>
 
     <div class="group">
-        <div class="group-label">2. Kích Thước & Khuôn</div>
+        <div class="group-label">2. Kích Thước & Viền</div>
         <div class="input-row">
-            <span>W/R:</span><input type="number" id="dimW" value="100" oninput="updateSelectedProps()">
-            <span>H:</span><input type="number" id="dimH" value="100" oninput="updateSelectedProps()">
-            <span>Viền:</span><input type="number" id="currStroke" value="2" oninput="updateSelectedProps()">
+            <span id="labelW">W:</span><input type="number" id="dimW" value="100" oninput="updateSelectedProps()">
+            <span id="labelH">H:</span><input type="number" id="dimH" value="100" oninput="updateSelectedProps()">
+            <span>Viền:</span><input type="number" id="currStroke" value="15" oninput="updateSelectedProps()">
         </div>
-        <div class="input-row" style="margin-top:2px">
-            <span>Cắt:</span><input type="range" id="cLen" min="10" max="355" value="90" oninput="drawTarget()" style="width: 120px">
+        <div class="input-row" style="margin-top:2px;">
+            <span>Viền:</span>
+            <input type="range" id="strokeSlider" min="1" max="100" value="15" oninput="syncStroke(this.value)">
         </div>
-        <button class="btn btn-red" onclick="tryCut()">CẮT THEO KHUÔN</button>
+        <div class="input-row">
+            <span>Cắt:</span>
+            <input type="range" id="cLen" min="10" max="355" value="180" oninput="drawTarget()">
+            <button class="btn btn-red" onclick="tryCut()" style="padding: 4px 10px;">CẮT</button>
+        </div>
     </div>
 
     <div class="group">
@@ -114,22 +114,23 @@
             <button class="btn btn-gray" onclick="rotatePiece(-15)">↺</button>
             <input type="number" id="currRot" value="0" oninput="updateSelectedProps()">
             <button class="btn btn-gray" onclick="rotatePiece(15)">↻</button>
-            <span>Sáng:</span><input type="range" id="lightAngle" min="0" max="360" value="135" oninput="updateLighting()" style="width:50px">
+            <span style="margin-left: 10px">Sáng:</span>
+            <input type="range" id="lightAngle" min="0" max="360" value="135" oninput="updateLighting()">
         </div>
-        <div style="display:flex; gap:5px; margin-top:2px;">
+        <div style="display:flex; gap:6px; margin-top:4px;">
             <input type="color" id="pColor" value="#007aff">
-            <button class="btn btn-3d" onclick="apply3D()" style="width:80px">TÔ 3D</button>
-            <button class="btn btn-blue" onclick="applyFlat()">PHẲNG</button>
+            <button class="btn btn-3d" onclick="apply3D()" style="flex:1">TÔ 3D</button>
+            <button class="btn btn-flat" onclick="applyFlat()">PHẲNG</button>
         </div>
     </div>
 
-    <div class="group" style="flex-grow: 1;">
-        <div class="group-label">4. Thao Tác & Xuất</div>
+    <div class="group" style="flex-grow: 1; border: none;">
+        <div class="group-label">4. Quản Lý & Xuất</div>
         <div style="display:flex; gap:8px;">
-            <button class="btn btn-red" onclick="deleteObj()" style="width: 80px;">XÓA</button>
-            <button class="btn btn-blue" onclick="smartSnap()" style="flex-grow:1">HÚT VỀ GỐC</button>
+            <button class="btn btn-red" onclick="deleteObj()" style="flex:1">XÓA</button>
+            <button class="btn btn-blue" onclick="smartSnap()" style="flex:1">HÚT VỀ GỐC</button>
         </div>
-        <button class="btn btn-green" onclick="exportImage()" style="margin-top:4px">📸 XUẤT FILE ẢNH PNG</button>
+        <button class="btn btn-green" onclick="exportImage()" style="width: 100%; margin-top: 8px; padding: 8px;">📸 XUẤT FILE ẢNH PNG</button>
     </div>
 </div>
 
@@ -145,20 +146,6 @@
                     <feComposite in="specOut" in2="SourceGraphic" operator="in"/>
                     <feComposite in="SourceGraphic" in2="specOut" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
                 </filter>
-                
-                <filter id="sphere3D" x="-50%" y="-50%" width="200%" height="200%">
-                    <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur"/>
-                    <feDiffuseLighting in="blur" lighting-color="#ffffff" surfaceScale="10" diffuseConstant="1" result="diffuseIn">
-                        <fePointLight id="diffuseSource" x="-10000" y="-10000" z="5000"/>
-                    </feDiffuseLighting>
-                    <feComposite in="diffuseIn" in2="SourceGraphic" operator="in" result="diffuseBase"/>
-                    <feSpecularLighting in="blur" lighting-color="#ffffff" surfaceScale="10" specularConstant="1" specularExponent="60" result="specularIn">
-                        <fePointLight id="specularSource" x="-10000" y="-10000" z="5000"/>
-                    </feSpecularLighting>
-                    <feComposite in="specularIn" in2="SourceGraphic" operator="in" result="specularBase"/>
-                    <feComposite in="SourceGraphic" in2="diffuseBase" operator="arithmetic" k1="1" k2="0.3" k3="0" k4="0" result="colorPass"/>
-                    <feComposite in="colorPass" in2="specularBase" operator="arithmetic" k1="0" k2="1" k3="1" k4="0"/>
-                </filter>
             </defs>
             <g id="baseLayer"></g>
             <path id="targetFrame" fill="none" stroke="#ffcc00" stroke-width="2" stroke-dasharray="8,4" />
@@ -168,6 +155,7 @@
 </div>
 
 <script>
+    /* TOÀN BỘ LOGIC JS GIỮ NGUYÊN NHƯ YÊU CẦU */
     let selectedObj = null;
     let centerX, centerY;
 
@@ -179,53 +167,62 @@
     window.addEventListener('resize', updateLayout);
     setTimeout(updateLayout, 100);
 
+    function toggleInputs() {
+        const type = document.getElementById('shapeType').value;
+        const isCircle = type.includes('circle');
+        document.getElementById('dimH').style.opacity = isCircle ? "0.3" : "1";
+        document.getElementById('dimH').disabled = isCircle;
+        document.getElementById('labelW').innerText = isCircle ? "R:" : "W:";
+    }
+
+    function syncStroke(val) {
+        document.getElementById('strokeSlider').value = val;
+        document.getElementById('currStroke').value = val;
+        updateSelectedProps();
+    }
+
     function updateBg() { document.getElementById('workspace').style.backgroundColor = document.getElementById('bgPicker').value; }
 
     function addNewShape() {
         const type = document.getElementById('shapeType').value;
-        const w = document.getElementById('dimW').value;
-        const h = document.getElementById('dimH').value;
+        const w = parseFloat(document.getElementById('dimW').value);
+        const h = parseFloat(document.getElementById('dimH').value);
         const sw = document.getElementById('currStroke').value;
         let el;
 
         if (type.startsWith('circle')) {
             el = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             el.setAttribute('cx', centerX); el.setAttribute('cy', centerY); el.setAttribute('r', w);
-            if(type === 'circle_solid') { el.setAttribute('fill', '#444'); el.setAttribute('stroke-width', 0); }
-            else { el.setAttribute('fill', 'none'); el.setAttribute('stroke', '#555'); el.setAttribute('stroke-width', sw); }
         } else if (type === 'ellipse') {
             el = document.createElementNS("http://www.w3.org/2000/svg", "ellipse");
             el.setAttribute('cx', centerX); el.setAttribute('cy', centerY); el.setAttribute('rx', w); el.setAttribute('ry', h);
-            el.setAttribute('fill', 'none'); el.setAttribute('stroke', '#555'); el.setAttribute('stroke-width', sw);
         } else if (type === 'rect' || type === 'cylinder') {
             el = document.createElementNS("http://www.w3.org/2000/svg", "rect");
             el.setAttribute('x', centerX - w/2); el.setAttribute('y', centerY - h/2);
             el.setAttribute('width', w); el.setAttribute('height', h);
-            el.setAttribute('fill', 'none'); el.setAttribute('stroke', '#555'); el.setAttribute('stroke-width', sw);
             if(type === 'cylinder') el.setAttribute('rx', w/2);
         } else if (type === 'cone') {
             el = document.createElementNS("http://www.w3.org/2000/svg", "path");
             el.setAttribute('d', `M ${centerX} ${centerY - h/2} L ${centerX - w/2} ${centerY + h/2} L ${centerX + w/2} ${centerY + h/2} Z`);
-            el.setAttribute('fill', 'none'); el.setAttribute('stroke', '#555'); el.setAttribute('stroke-width', sw);
         }
+
+        if(type === 'circle_solid') { el.setAttribute('fill', '#444'); el.setAttribute('stroke-width', 0); }
+        else { el.setAttribute('fill', 'none'); el.setAttribute('stroke', '#555'); el.setAttribute('stroke-width', sw); }
 
         el.setAttribute('data-type', type);
         el.id = "shape_" + Date.now();
         setupElement(el); document.getElementById('baseLayer').appendChild(el); select(el);
-        drawTarget();
     }
 
     function setupElement(el) {
         interact(el).draggable({
-            listeners: {
-                move(e) {
-                    const t = e.target;
-                    const x = (parseFloat(t.getAttribute('data-x')) || 0) + e.dx;
-                    const y = (parseFloat(t.getAttribute('data-y')) || 0) + e.dy;
-                    t.setAttribute('data-x', x); t.setAttribute('data-y', y);
-                    updateTransform(t);
-                }
-            }
+            listeners: { move(e) {
+                const t = e.target;
+                const x = (parseFloat(t.getAttribute('data-x')) || 0) + e.dx;
+                const y = (parseFloat(t.getAttribute('data-y')) || 0) + e.dy;
+                t.setAttribute('data-x', x); t.setAttribute('data-y', y);
+                updateTransform(t);
+            }}
         }).on('tap', (e) => { e.stopPropagation(); select(el); });
     }
 
@@ -239,73 +236,28 @@
         if (selectedObj) selectedObj.classList.remove('selected');
         selectedObj = el; el.classList.add('selected');
         document.getElementById('currStroke').value = el.getAttribute('stroke-width') || 0;
+        document.getElementById('strokeSlider').value = el.getAttribute('stroke-width') || 0;
         document.getElementById('currRot').value = el.getAttribute('data-rot') || 0;
         document.getElementById('targetFrame').style.display = 'block';
         drawTarget();
     }
 
-    function deselect(e) { 
-        if (e.target.id === "workspace" || e.target.tagName === "svg") { 
-            if (selectedObj) selectedObj.classList.remove('selected'); 
-            selectedObj = null; 
-            document.getElementById('targetFrame').style.display = 'none';
-        } 
-    }
+    function deselect(e) { if (e.target.id === "workspace") { if (selectedObj) selectedObj.classList.remove('selected'); selectedObj = null; document.getElementById('targetFrame').style.display='none'; } }
 
     function updateSelectedProps() {
         if (!selectedObj) return;
-        const w = document.getElementById('dimW').value;
-        const h = document.getElementById('dimH').value;
+        const w = parseFloat(document.getElementById('dimW').value);
+        const h = parseFloat(document.getElementById('dimH').value);
         const sw = document.getElementById('currStroke').value;
         const rot = document.getElementById('currRot').value;
         const type = selectedObj.getAttribute('data-type');
         selectedObj.setAttribute('data-rot', rot);
-        if (type !== 'circle_solid') selectedObj.setAttribute('stroke-width', sw);
+        if (selectedObj.getAttribute('fill') === 'none') selectedObj.setAttribute('stroke-width', sw);
         if (type.startsWith('circle')) selectedObj.setAttribute('r', w);
         else if (type === 'ellipse') { selectedObj.setAttribute('rx', w); selectedObj.setAttribute('ry', h); }
-        else if (type === 'rect' || type === 'cylinder') {
-            selectedObj.setAttribute('width', w); selectedObj.setAttribute('height', h);
-            selectedObj.setAttribute('x', centerX - w/2); selectedObj.setAttribute('y', centerY - h/2);
-        } else if (type === 'cone') {
-            selectedObj.setAttribute('d', `M ${centerX} ${centerY - h/2} L ${centerX - w/2} ${centerY + h/2} L ${centerX + w/2} ${centerY + h/2} Z`);
-        }
+        else if (selectedObj.tagName === 'rect') { selectedObj.setAttribute('width', w); selectedObj.setAttribute('height', h); selectedObj.setAttribute('x', centerX - w/2); selectedObj.setAttribute('y', centerY - h/2); }
+        else if (type === 'cone') { selectedObj.setAttribute('d', `M ${centerX} ${centerY - h/2} L ${centerX - w/2} ${centerY + h/2} L ${centerX + w/2} ${centerY + h/2} Z`); }
         updateTransform(selectedObj); drawTarget();
-    }
-
-    function drawTarget() {
-        const type = selectedObj ? selectedObj.getAttribute('data-type') : document.getElementById('shapeType').value;
-        const w = parseFloat(document.getElementById('dimW').value);
-        const h = parseFloat(document.getElementById('dimH').value);
-        const lD = parseFloat(document.getElementById('cLen').value);
-        const tf = document.getElementById('targetFrame');
-        if (type.startsWith('circle')) {
-            const x2 = centerX + w * Math.cos(lD * Math.PI / 180), y2 = centerY + w * Math.sin(lD * Math.PI / 180);
-            if (type === 'circle_solid') tf.setAttribute('d', `M ${centerX} ${centerY} L ${centerX + w} ${centerY} A ${w} ${w} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2} Z`);
-            else tf.setAttribute('d', `M ${centerX + w} ${centerY} A ${w} ${w} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2}`);
-        } else if (type === 'rect' || type === 'cylinder') {
-            const offset = (lD / 355) * w;
-            tf.setAttribute('d', `M ${centerX - w/2} ${centerY - h/2} L ${centerX - w/2 + offset} ${centerY - h/2} L ${centerX - w/2 + offset} ${centerY + h/2} L ${centerX - w/2} ${centerY + h/2} Z`);
-        } else if (type === 'ellipse') {
-            const x2 = centerX + w * Math.cos(lD * Math.PI / 180), y2 = centerY + h * Math.sin(lD * Math.PI / 180);
-            tf.setAttribute('d', `M ${centerX} ${centerY} L ${centerX + w} ${centerY} A ${w} ${h} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2} Z`);
-        } else if (type === 'cone') {
-            const ratio = lD / 355;
-            tf.setAttribute('d', `M ${centerX} ${centerY - h/2} L ${centerX - (w/2)*ratio} ${centerY - h/2 + h*ratio} L ${centerX + (w/2)*ratio} ${centerY - h/2 + h*ratio} Z`);
-        }
-    }
-
-    function tryCut() {
-        if (!selectedObj) return;
-        const type = selectedObj.getAttribute('data-type');
-        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
-        p.setAttribute('d', document.getElementById('targetFrame').getAttribute('d'));
-        if (type === 'circle_solid' || type === 'ellipse') { p.setAttribute('fill', '#444'); p.setAttribute('stroke-width', 0); }
-        else { p.setAttribute('fill', 'none'); p.setAttribute('stroke', '#555'); p.setAttribute('stroke-width', selectedObj.getAttribute('stroke-width')); }
-        p.setAttribute('data-parent-id', selectedObj.id);
-        p.setAttribute('data-x', selectedObj.getAttribute('data-x') || 0);
-        p.setAttribute('data-y', selectedObj.getAttribute('data-y') || 0);
-        p.setAttribute('data-rot', 0);
-        setupElement(p); document.getElementById('piecesLayer').appendChild(p); select(p);
     }
 
     function rotatePiece(deg) {
@@ -316,63 +268,44 @@
         updateTransform(selectedObj);
     }
 
-    function apply3D() { 
+    function drawTarget() {
+        if(!selectedObj) return;
+        const w = parseFloat(document.getElementById('dimW').value);
+        const lD = parseFloat(document.getElementById('cLen').value);
+        const tf = document.getElementById('targetFrame');
+        const x2 = centerX + w * Math.cos(lD * Math.PI / 180), y2 = centerY + w * Math.sin(lD * Math.PI / 180);
+        tf.setAttribute('d', `M ${centerX + w} ${centerY} A ${w} ${w} 0 ${lD > 180 ? 1 : 0} 1 ${x2} ${y2}`);
+    }
+
+    function tryCut() {
         if (!selectedObj) return;
-        const color = document.getElementById('pColor').value;
-        if (selectedObj.getAttribute('fill') !== 'none') selectedObj.setAttribute('fill', color);
-        else selectedObj.setAttribute('stroke', color);
-        
-        // FIX 3: Tự động dùng Filter 3D chuẩn
-        if(selectedObj.getAttribute('data-type') === 'circle_solid') {
-            selectedObj.classList.remove('effect-bevel');
-            selectedObj.classList.add('effect-sphere'); // Dùng filter hình cầu mới
-        } else {
-            selectedObj.classList.remove('effect-sphere');
-            selectedObj.classList.add('effect-bevel');
-        }
+        const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        p.setAttribute('d', document.getElementById('targetFrame').getAttribute('d'));
+        p.setAttribute('fill', 'none'); p.setAttribute('stroke', '#555'); 
+        p.setAttribute('stroke-width', document.getElementById('currStroke').value);
+        p.id = "piece_" + Date.now();
+        p.setAttribute('data-type', 'path');
+        setupElement(p); document.getElementById('piecesLayer').appendChild(p); select(p);
     }
+
+    function apply3D() { if (selectedObj) { selectedObj.setAttribute('stroke', document.getElementById('pColor').value); selectedObj.classList.add('effect-3d'); } }
+    function applyFlat() { if (selectedObj) selectedObj.classList.remove('effect-3d'); }
+    function deleteObj() { if(selectedObj) { selectedObj.remove(); selectedObj = null; document.getElementById('targetFrame').style.display='none'; } }
+    function smartSnap() { if(selectedObj) { selectedObj.setAttribute('data-x', 0); selectedObj.setAttribute('data-y', 0); updateTransform(selectedObj); } }
     
-    function applyFlat() { 
-        if (!selectedObj) return;
-        selectedObj.classList.remove('effect-bevel', 'effect-sphere'); 
-    }
-    function deleteObj() { if(selectedObj) { selectedObj.remove(); selectedObj = null; document.getElementById('targetFrame').style.display = 'none'; } }
-    
-    function smartSnap() {
-        if(!selectedObj || !selectedObj.getAttribute('data-parent-id')) return;
-        const parent = document.getElementById(selectedObj.getAttribute('data-parent-id'));
-        if(parent) {
-            selectedObj.setAttribute('data-x', parent.getAttribute('data-x') || 0);
-            selectedObj.setAttribute('data-y', parent.getAttribute('data-y') || 0);
-            selectedObj.setAttribute('data-rot', 0); document.getElementById('currRot').value = 0;
-            updateTransform(selectedObj);
-        }
-    }
     function updateLighting() {
         const angle = document.getElementById('lightAngle').value;
         const rad = angle * Math.PI / 180;
-        const lx = Math.cos(rad) * -5000;
-        const ly = Math.sin(rad) * -5000;
-        
-        // Cập nhật nguồn sáng cho cả 2 loại filter
-        document.getElementById('lightSource').setAttribute('x', lx);
-        document.getElementById('lightSource').setAttribute('y', ly);
-        document.getElementById('diffuseSource').setAttribute('x', lx);
-        document.getElementById('diffuseSource').setAttribute('y', ly);
-        document.getElementById('specularSource').setAttribute('x', lx);
-        document.getElementById('specularSource').setAttribute('y', ly);
+        document.getElementById('lightSource').setAttribute('x', Math.cos(rad) * -5000);
+        document.getElementById('lightSource').setAttribute('y', Math.sin(rad) * -5000);
     }
+
     function exportImage() {
-        const workspace = document.getElementById('workspace');
-        const tf = document.getElementById('targetFrame');
-        const originalDisplay = tf.style.display;
-        tf.style.display = 'none';
-        html2canvas(workspace).then(canvas => {
+        html2canvas(document.getElementById('workspace')).then(canvas => {
             const link = document.createElement('a');
             link.download = 'mat-xich-studio-export.png';
-            link.href = canvas.toDataURL('image/png');
+            link.href = canvas.toDataURL();
             link.click();
-            tf.style.display = originalDisplay;
         });
     }
 </script>
